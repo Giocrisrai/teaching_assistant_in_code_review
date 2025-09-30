@@ -1,5 +1,5 @@
 import React from 'react';
-import { getScoreHexColor, getScoreColorClass } from '../utils';
+import { getScoreHexColor, getScoreColorClass } from '../utils/colors';
 
 interface ScoreDonutProps {
   score: number;

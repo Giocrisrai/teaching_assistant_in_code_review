@@ -1,87 +1,28 @@
-
 import React, { useState, useCallback } from 'react';
 import { Header } from './components/Header';
 import { RepoInputForm } from './components/RepoInputForm';
 import { EvaluationReport } from './components/EvaluationReport';
 import { Loader } from './components/Loader';
-import { getRepoContents } from './services/githubService';
-import { evaluateProject } from './services/geminiService';
 import { DEFAULT_RUBRIC } from './constants';
-import type { EvaluationResult, GitHubFile } from './types';
 import { GithubIcon, InfoIcon } from './components/icons';
-
-const MAX_PROMPT_CHARS = 100000; // Límite de caracteres para el contenido de los archivos
+import { useEvaluation } from './hooks/useEvaluation';
 
 const App: React.FC = () => {
   const [repoUrl, setRepoUrl] = useState<string>('https://github.com/Nazabkn/ML_MyE.git');
   const [rubric, setRubric] = useState<string>(DEFAULT_RUBRIC);
-  const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [loadingMessage, setLoadingMessage] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
-  const [repoName, setRepoName] = useState<string>('');
 
-  const formatFilesForPrompt = (files: GitHubFile[]): string => {
-    let content = '';
-    let characterCount = 0;
-    const allFilePaths = files.map(f => f.path).join('\n');
-    
-    content += `Lista completa de archivos en el proyecto:\n${allFilePaths}\n\n--- INICIO DEL CONTENIDO DE ARCHIVOS ---\n`;
+  const {
+    evaluation,
+    isLoading,
+    loadingMessage,
+    error,
+    repoName,
+    analyze,
+  } = useEvaluation();
 
-    for (const file of files) {
-      const fileContent = `
---- ARCHIVO: ${file.path} ---
-\`\`\`
-${file.content}
-\`\`\`
---- FIN ARCHIVO: ${file.path} ---
-      `;
-      if (characterCount + fileContent.length > MAX_PROMPT_CHARS) {
-        content += "\n--- NOTA: El contenido de los archivos restantes ha sido truncado para no exceder el límite de contexto. Evaluar en base a la estructura de archivos y el contenido disponible. ---";
-        break;
-      }
-      content += fileContent;
-      characterCount += fileContent.length;
-    }
-
-    return content;
-  };
-
-  const handleAnalyze = useCallback(async () => {
-    if (!repoUrl) {
-      setError('Por favor, ingresa una URL de repositorio de GitHub válida.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    setEvaluation(null);
-
-    try {
-      setLoadingMessage('Obteniendo archivos del repositorio desde GitHub...');
-      const { files, repoName: extractedRepoName, envFileWarning } = await getRepoContents(repoUrl);
-      setRepoName(extractedRepoName);
-      if (files.length === 0) {
-        throw new Error('No se pudieron obtener archivos del repositorio. Podría ser privado, estar vacío o la URL es incorrecta.');
-      }
-      
-      let projectContext = formatFilesForPrompt(files);
-      if (envFileWarning) {
-        projectContext = envFileWarning + projectContext;
-      }
-      
-      setLoadingMessage('La IA de Gemini está analizando el código... Esto puede tardar un momento.');
-      const result = await evaluateProject(projectContext, rubric);
-      
-      setEvaluation(result);
-    } catch (e: any) {
-      console.error(e);
-      setError(e.message || 'Ocurrió un error inesperado durante el análisis. Revisa la consola para más detalles.');
-    } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
-    }
-  }, [repoUrl, rubric]);
+  const handleAnalyzeClick = useCallback(() => {
+    analyze(repoUrl, rubric);
+  }, [repoUrl, rubric, analyze]);
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 font-sans">
@@ -95,7 +36,7 @@ ${file.content}
           setRepoUrl={setRepoUrl}
           rubric={rubric}
           setRubric={setRubric}
-          onAnalyze={handleAnalyze}
+          onAnalyze={handleAnalyzeClick}
           isLoading={isLoading}
         />
         <div className="mt-6 bg-gray-800/60 border border-yellow-700/50 text-yellow-300/80 px-4 py-3 rounded-lg flex items-start gap-3">

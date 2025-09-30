@@ -1,78 +1,28 @@
+// FIX: The original file was plain text, not a valid TypeScript module.
+// This wraps the rubric text in a template string and exports it as a constant.
+export const DEFAULT_RUBRIC = `# Rúbrica de Evaluación de Proyecto de Software (Nivel Universitario - 3er Año)
 
-export const DEFAULT_RUBRIC = `
-You will evaluate a student's Machine Learning project built with the Kedro framework.
-The evaluation has 10 criteria, each worth 10% of the total grade.
-For each criterion, provide a percentage score and detailed feedback.
-After evaluating all criteria, provide an overall summary and a final numerical score.
+## 1. Funcionalidad y Correctitud (30%)
+- **(30 pts) Excelente:** El programa cumple con todos los requisitos funcionales. Es robusto, maneja correctamente todos los casos borde y no tiene errores observables.
+- **(20 pts) Bueno:** El programa cumple con los requisitos principales y la funcionalidad central es correcta. Puede tener algunos bugs menores o no manejar todos los casos borde de forma ideal.
+- **(10 pts) Suficiente:** El programa se ejecuta pero tiene errores significativos que afectan su funcionalidad principal o no cumple con varios requisitos.
+- **(0 pts) Insuficiente:** El programa no se ejecuta, tiene errores críticos que impiden su uso o no cumple con los requisitos básicos.
 
-**Evaluation Criteria (10 indicators)**
+## 2. Calidad y Estructura del Código (30%)
+- **(30 pts) Excelente:** El código demuestra un entendimiento avanzado. El proyecto sigue una estructura de directorios convencional y escalable. El código está organizado lógicamente en módulos/clases que aplican principios de diseño como SOLID, promoviendo una arquitectura desacoplada y mantenible. Es altamente legible y sigue consistentemente las guías de estilo.
+- **(20 pts) Bueno:** El código está bien organizado, es legible y sigue las guías de estilo. Las funciones y módulos tienen una responsabilidad clara. Es un código limpio y mantenible que cumple con un buen estándar profesional para un estudiante.
+- **(10 pts) Suficiente:** El código funciona pero tiene problemas de estructura. Puede estar desorganizado (ej. lógica mezclada, todo en un solo archivo), ser difícil de leer o inconsistente en su estilo.
+- **(0 pts) Insuficiente:** El código es caótico, ilegible y no sigue ninguna buena práctica de estructuración.
 
-1.  **Project Structure and Kedro Configuration (10%)**
-    *   100%: Perfectly structured Kedro project, complete configuration in \`conf/\`, detailed README, clear modular structure.
-    *   80%: Well-structured project, functional configuration, adequate documentation.
-    *   60%: Basic functional structure, minimal operative configuration.
-    *   40%: Errors in structure, incomplete configuration.
-    *   20%: Does not use Kedro or has an incorrect structure.
+## 3. Documentación y Comentarios (20%)
+- **(20 pts) Excelente:** El proyecto incluye un archivo \`README.md\` ejemplar que explica el propósito, cómo instalar dependencias y cómo ejecutarlo de forma clara. El código tiene docstrings y comentarios útiles que explican el "porqué" de las decisiones complejas.
+- **(10 pts) Bueno:** La documentación es adecuada. Existe un \`README.md\` con las instrucciones básicas y el código tiene comentarios donde es necesario. Cumple con los requisitos para que otra persona entienda y ejecute el proyecto.
+- **(5 pts) Suficiente:** La documentación es escasa o incompleta. El \`README.md\` es muy básico o los comentarios son mínimos.
+- **(0 pts) Insuficiente:** No hay documentación o es completamente inútil.
 
-2.  **Data Catalog Implementation (10%)**
-    *   100%: 3+ datasets correctly configured, multiple formats (CSV, Excel, Parquet), parametrization, versioning.
-    *   80%: 3 datasets well-configured in appropriate formats.
-    *   60%: 3 basic functional datasets.
-    *   40%: Fewer than 3 datasets or significant errors.
-    *   20%: No catalog or misconfigured.
-
-3.  **Node and Function Development (10%)**
-    *   100%: Highly modular nodes, pure functions, complete docstrings, error handling, SOLID principles.
-    *   80%: Well-structured nodes, good documentation.
-    *   60%: Functional nodes with basic modularity.
-    *   40%: Low modularity, coupled functions.
-    *   20%: No nodes or poorly structured.
-
-4.  **Pipeline Construction (10%)**
-    *   100%: Pipelines organized by CRISP-DM phase, use of namespaces, clear dependencies, composable.
-    *   80%: Functional, well-connected pipelines.
-    *   60%: Basic operative pipelines.
-    *   40%: Problems in dependencies or structure.
-    *   20%: No pipelines or incorrect.
-
-5.  **Exploratory Data Analysis (EDA) (10%)**
-    *   100%: Exhaustive EDA (univariate, bivariate, multivariate), pattern analysis on 3+ datasets. To achieve this score, the analysis must incorporate advanced visualization techniques, such as interactive plots (e.g., using Plotly, Bokeh) or dimensionality reduction plots (e.g., PCA, t-SNE), to uncover deeper insights.
-    *   80%: Complete EDA with good analysis and visualizations.
-    *   60%: Basic EDA with descriptive statistics.
-    *   40%: Superficial or incomplete EDA.
-    *   20%: No EDA or extremely basic.
-
-6.  **Data Cleaning and Processing (10%)**
-    *   100%: Sophisticated, differentiated cleaning strategies by variable type. Exhaustive justification in the notebook for each key decision (e.g., outlier treatment), including a **discussion of alternative methods considered and why they were discarded**. Post-cleaning data integrity validations.
-    *   80%: Good treatment with justified strategies.
-    *   60%: Basic cleaning implemented.
-    *   40%: Superficial cleaning or with errors.
-    *   20%: No cleaning or poorly implemented.
-
-7.  **Transformation and Feature Engineering (10%)**
-    *   100%: Creative and business-relevant feature engineering. Creation of **novel, non-obvious variables** that demonstrate a deep understanding of the problem domain and positively impact the model. The process is parametrizable and justified.
-    *   80%: Good transformations (scaling, encoding), derived features.
-    *   60%: Basic transformations (normalization/standardization).
-    *   20%: No necessary transformations performed.
-
-8.  **ML Target Identification (10%)**
-    *   100%: Multiple correct targets for regression and classification, solid business-based justification, viability analysis, and their alignment with the potential business problem.
-    *   80%: Main targets correct with good justification.
-    *   60%: Basic targets correct.
-    *   40%: Confused or partially incorrect identification.
-    *   20%: No identification or completely misdefined.
-
-9.  **Documentation, Notebooks, and Narrative (10%)**
-    *   100%: Exceptional documentation. The README is exhaustive, detailing project setup, execution, structure, and key findings. Docstrings are comprehensive and follow a standard style (e.g., Google). Notebooks present a clear, compelling narrative, structured by CRISP-DM phases, with insightful markdown explanations for each step, high-quality, well-labeled visualizations, and concrete conclusions drawn from the analysis. The code within notebooks is itself clean and well-commented.
-    *   80%: Good documentation. The README includes setup and execution. Notebooks are well-structured with markdown explanations and clear visualizations. Docstrings are present and informative.
-    *   60%: Basic documentation. A functional README exists. Notebooks are functional but lack a clear narrative or detailed explanations. Code may be uncommented.
-    *   40%: Deficient or confusing documentation. The README is missing key information. Notebooks are messy, difficult to follow, or lack explanations.
-    *   20%: No meaningful documentation or notebooks are just code dumps.
-
-10. **Reproducibility and Best Practices (10%)**
-    *   100%: Production-level. The project is 100% reproducible with a single command. Uses a locked dependency file (e.g., \`poetry.lock\`, \`pip-compile\`). Configuration is impeccably managed (e.g., \`parameters.yml\`). **Includes a suite of meaningful unit tests (e.g., using \`pytest\`)** in a \`tests/\` directory. Uses and configures linters and formatters (e.g., Black, Pylint) to ensure consistent, professional code quality. No secrets are committed.
-    *   80%: Reproducible with good practices. Dependencies are listed. Code is consistent. May use a linter/formatter. May have some basic tests.
-    *   60%: Basically reproducible, some good practices. Includes a requirements.txt, but code style is inconsistent. No tests.
-    *   40%: Reproducibility problems. Missing or incomplete dependency files.
-    *   20%: Not reproducible, lacks basic configuration and consistency.
+## 4. Buenas Prácticas y Profesionalismo (20%)
+- **(20 pts) Excelente:** Se aplican consistentemente las mejores prácticas. Se utiliza un archivo de gestión de dependencias (ej. \`requirements.txt\`, \`package.json\`). Se utiliza un archivo \`.gitignore\` completo y adecuado. No hay archivos sensibles (como \`.env\` o claves) subidos al repositorio. El historial de commits es limpio y descriptivo.
+- **(10 pts) Bueno:** Se aplican las prácticas esenciales. Existe un gestor de dependencias y un \`.gitignore\`. No se suben archivos sensibles. El historial de commits puede ser mejorable pero es funcional.
+- **(5 pts) Suficiente:** Uso inconsistente de buenas prácticas. Faltan elementos importantes como un \`.gitignore\` bien configurado o la gestión de dependencias no es ideal.
+- **(0 pts) Insuficiente:** Malas prácticas evidentes. Presencia de archivos sensibles en el repositorio (falta grave), no se gestionan dependencias, se suben archivos generados o binarios.
 `;

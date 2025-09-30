@@ -102,7 +102,7 @@ export async function getRepoContents(repoUrl: string): Promise<{ files: GitHubF
     }
 
     if (!foundBranch) {
-      throw new Error(`No se pudo determinar la rama por defecto. Se intentó con 'main' y 'master' sin éxito. Por favor, especifica la rama en la URL (ej: .../tree/main).`);
+      throw new Error(`No se pudo determinar la rama por defecto. Se intentó con 'main' y 'master' sin éxito. Si el repositorio usa otra rama (ej. 'develop'), por favor, especifícala en la URL (ej: .../tree/develop).`);
     }
   }
 

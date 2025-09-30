@@ -1,6 +1,7 @@
+// FIX: Implement the RubricItem component to display a single criterion's evaluation.
 import React from 'react';
 import type { EvaluationItem } from '../types';
-import { getScoreColorStyles } from '../utils';
+import { getScoreColorClass } from '../utils/colors';
 import { FeedbackRenderer } from './FeedbackRenderer';
 
 interface RubricItemProps {
@@ -8,25 +9,19 @@ interface RubricItemProps {
 }
 
 export const RubricItem: React.FC<RubricItemProps> = ({ item }) => {
-  const { bg, text } = getScoreColorStyles(item.score);
+  const scoreColor = getScoreColorClass(item.score);
 
   return (
-    <div className="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
-      <div className="flex justify-between items-center mb-2">
-        <h4 className="font-semibold text-gray-200 flex-1 pr-4">{item.criterion}</h4>
-        <span className={`font-bold text-lg ${text}`}>{item.score}/100</span>
-      </div>
-      <div className="w-full bg-gray-700 rounded-full h-2.5 mb-4">
-        <div
-          className={`${bg} h-2.5 rounded-full transition-all duration-500`}
-          style={{ width: `${item.score}%` }}
-        ></div>
-      </div>
-      <div>
-        <h5 className="text-sm font-semibold text-gray-400 mb-1">Feedback Detallado:</h5>
-        <div className="text-gray-300 text-sm whitespace-pre-wrap font-mono bg-black/20 p-3 rounded-md">
-          <FeedbackRenderer text={item.feedback} />
+    <div className="bg-gray-900/70 border border-gray-700 rounded-lg p-4 transition-shadow hover:shadow-lg">
+      <div className="flex justify-between items-start gap-4">
+        <h4 className="text-lg font-semibold text-gray-100 flex-1">{item.criterion}</h4>
+        <div className="flex-shrink-0">
+          <span className={`text-2xl font-bold ${scoreColor}`}>{item.score}</span>
+          <span className="text-sm text-gray-500"> / 100</span>
         </div>
+      </div>
+      <div className="mt-3 prose prose-sm prose-invert max-w-none prose-p:text-gray-300 prose-ul:text-gray-300 prose-li:marker:text-cyan-400">
+        <FeedbackRenderer text={item.feedback} />
       </div>
     </div>
   );
