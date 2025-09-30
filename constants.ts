@@ -36,7 +36,7 @@ After evaluating all criteria, provide an overall summary and a final numerical 
     *   20%: No pipelines or incorrect.
 
 5.  **Exploratory Data Analysis (EDA) (10%)**
-    *   100%: Exhaustive EDA (univariate, bivariate, multivariate), interactive visualizations, pattern analysis on 3+ datasets.
+    *   100%: Exhaustive EDA (univariate, bivariate, multivariate), pattern analysis on 3+ datasets. To achieve this score, the analysis must incorporate advanced visualization techniques, such as interactive plots (e.g., using Plotly, Bokeh) or dimensionality reduction plots (e.g., PCA, t-SNE), to uncover deeper insights.
     *   80%: Complete EDA with good analysis and visualizations.
     *   60%: Basic EDA with descriptive statistics.
     *   40%: Superficial or incomplete EDA.
