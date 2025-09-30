@@ -2,7 +2,8 @@ import type { GitHubFile, JupyterNotebook, NotebookCell } from '../types';
 
 const RELEVANT_EXTENSIONS = [
   '.py', '.yml', '.yaml', '.md', '.txt', '.json',
-  '.ipynb', '.cfg', '.toml', '.ini'
+  '.ipynb', '.cfg', '.toml', '.ini', '.js', '.ts', '.html', '.css',
+  '.flake8', 'pytest.ini', '.coveragerc'
 ];
 
 function parseRepoUrl(url: string): { owner: string; repo: string; branch: string | null; path: string } | null {
@@ -67,7 +68,7 @@ function parseAndFormatNotebook(rawContent: string): string {
   }
 }
 
-export async function getRepoContents(repoUrl: string): Promise<{ files: GitHubFile[], repoName: string }> {
+export async function getRepoContents(repoUrl: string): Promise<{ files: GitHubFile[], repoName: string, envFileWarning: string }> {
   const repoInfo = parseRepoUrl(repoUrl);
 
   if (!repoInfo) {
@@ -116,6 +117,13 @@ export async function getRepoContents(repoUrl: string): Promise<{ files: GitHubF
   }
 
   const allFiles = listData.files as { name: string }[];
+  let envFileWarning = '';
+
+  // Check for .env file at the root
+  const envFile = allFiles.find(file => file.name === '/.env');
+  if (envFile) {
+      envFileWarning = "\n--- ALERTA DE SEGURIDAD CRÍTICA ---\nSe detectó un archivo `.env` en la raíz del repositorio. Este es un anti-patrón de seguridad grave, ya que expone secretos. Este hecho debe ser mencionado en el feedback y penalizado severamente en la categoría de 'Buenas Prácticas'.\n---------------------------------\n";
+  }
 
   // 3. Filter for relevant files
   let relevantFiles = allFiles;
@@ -160,5 +168,5 @@ export async function getRepoContents(repoUrl: string): Promise<{ files: GitHubF
 
   const files = await Promise.all(filePromises);
   const filteredFiles = files.filter(f => !f.content.startsWith('Error:'));
-  return { files: filteredFiles, repoName: repo };
+  return { files: filteredFiles, repoName: repo, envFileWarning };
 }

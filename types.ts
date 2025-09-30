@@ -13,6 +13,7 @@ export interface EvaluationItem {
 export interface EvaluationResult {
   overallScore: number;
   summary: string;
+  professionalismSummary: string;
   report: EvaluationItem[];
   finalChileanGrade: number;
 }

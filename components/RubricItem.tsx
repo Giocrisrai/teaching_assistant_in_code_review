@@ -1,6 +1,7 @@
 import React from 'react';
 import type { EvaluationItem } from '../types';
 import { getScoreColorStyles } from '../utils';
+import { FeedbackRenderer } from './FeedbackRenderer';
 
 interface RubricItemProps {
   item: EvaluationItem;
@@ -23,7 +24,9 @@ export const RubricItem: React.FC<RubricItemProps> = ({ item }) => {
       </div>
       <div>
         <h5 className="text-sm font-semibold text-gray-400 mb-1">Feedback Detallado:</h5>
-        <p className="text-gray-300 text-sm whitespace-pre-wrap font-mono bg-black/20 p-3 rounded-md">{item.feedback}</p>
+        <div className="text-gray-300 text-sm whitespace-pre-wrap font-mono bg-black/20 p-3 rounded-md">
+          <FeedbackRenderer text={item.feedback} />
+        </div>
       </div>
     </div>
   );

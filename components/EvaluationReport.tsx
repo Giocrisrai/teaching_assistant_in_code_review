@@ -5,8 +5,9 @@ import html2canvas from 'html2canvas';
 import type { EvaluationResult } from '../types';
 import { ScoreDonut } from './ScoreDonut';
 import { RubricItem } from './RubricItem';
-import { DownloadIcon, JsonIcon } from './icons';
+import { DownloadIcon, JsonIcon, InfoIcon } from './icons';
 import { getScoreColorClass } from '../utils';
+import { FeedbackRenderer } from './FeedbackRenderer';
 
 interface EvaluationReportProps {
   result: EvaluationResult;
@@ -14,7 +15,7 @@ interface EvaluationReportProps {
 }
 
 export const EvaluationReport: React.FC<EvaluationReportProps> = ({ result, repoName }) => {
-  const { overallScore, summary, report, finalChileanGrade } = result;
+  const { overallScore, summary, report, finalChileanGrade, professionalismSummary } = result;
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const handleDownloadJson = () => {
@@ -60,6 +61,9 @@ export const EvaluationReport: React.FC<EvaluationReportProps> = ({ result, repo
       // Process elements one by one to ensure proper pagination
       const headerEl = document.getElementById('report-header');
       if (headerEl) await addElement(headerEl);
+
+      const professionalismEl = document.getElementById('report-professionalism-summary');
+      if (professionalismEl) await addElement(professionalismEl);
 
       const summarySectionEl = document.getElementById('report-summary-section');
       if (summarySectionEl) await addElement(summarySectionEl);
@@ -125,15 +129,34 @@ export const EvaluationReport: React.FC<EvaluationReportProps> = ({ result, repo
                      <span className={`text-4xl font-bold ${finalGradeColor}`}>{finalChileanGrade.toFixed(1)}</span>
                      <span className="text-xs text-gray-400">/ 7.0</span>
                  </div>
-                 <p className="mt-2 text-sm text-gray-400">Nota Final (Escala Chilena)</p>
+                 <div className="relative group">
+                    <p className="mt-2 text-sm text-gray-400 flex items-center gap-1">
+                        Nota Final (Escala Chilena)
+                        <InfoIcon className="w-4 h-4 text-gray-500"/>
+                    </p>
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs p-2 bg-gray-900 text-gray-300 text-xs rounded-md border border-gray-600 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        Calculado con la fórmula:
+                        <br />
+                        <code className="text-cyan-400">(Puntaje / 100) * 6 + 1</code>
+                    </div>
+                 </div>
             </div>
         </div>
       </header>
+
+      <section id="report-professionalism-summary">
+        <h3 className="text-xl font-semibold mb-4 text-gray-200">Veredicto Profesional (Para el Educador)</h3>
+        <div className="bg-gradient-to-br from-gray-800 to-gray-800/60 p-5 rounded-lg border border-cyan-700/50 shadow-lg">
+          <p className="text-gray-300 italic">
+            <FeedbackRenderer text={professionalismSummary} />
+          </p>
+        </div>
+      </section>
       
       <section id="report-summary-section">
         <h3 className="text-xl font-semibold mb-4 text-gray-200">Resumen de la Evaluación</h3>
         <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-          <p className="text-gray-300 whitespace-pre-wrap">{summary}</p>
+          <FeedbackRenderer text={summary} />
         </div>
       </section>
 

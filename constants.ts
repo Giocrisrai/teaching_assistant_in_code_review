@@ -43,37 +43,36 @@ After evaluating all criteria, provide an overall summary and a final numerical 
     *   20%: No EDA or extremely basic.
 
 6.  **Data Cleaning and Processing (10%)**
-    *   100%: Differentiated strategies by variable type, sophisticated handling of outliers/missing values, integrity validation.
+    *   100%: Sophisticated, differentiated cleaning strategies by variable type. Exhaustive justification in the notebook for each key decision (e.g., outlier treatment), including a **discussion of alternative methods considered and why they were discarded**. Post-cleaning data integrity validations.
     *   80%: Good treatment with justified strategies.
     *   60%: Basic cleaning implemented.
     *   40%: Superficial cleaning or with errors.
     *   20%: No cleaning or poorly implemented.
 
 7.  **Transformation and Feature Engineering (10%)**
-    *   100%: Advanced, justified transformations, creative feature engineering, PCA if applicable, parametrizable pipelines.
+    *   100%: Creative and business-relevant feature engineering. Creation of **novel, non-obvious variables** that demonstrate a deep understanding of the problem domain and positively impact the model. The process is parametrizable and justified.
     *   80%: Good transformations (scaling, encoding), derived features.
     *   60%: Basic transformations (normalization/standardization).
-    *   40%: Limited or misapplied transformations.
     *   20%: No necessary transformations performed.
 
 8.  **ML Target Identification (10%)**
-    *   100%: Multiple correct targets for regression and classification, solid business-based justification, viability analysis.
+    *   100%: Multiple correct targets for regression and classification, solid business-based justification, viability analysis, and their alignment with the potential business problem.
     *   80%: Main targets correct with good justification.
     *   60%: Basic targets correct.
     *   40%: Confused or partially incorrect identification.
     *   20%: No identification or completely misdefined.
 
-9.  **Documentation and Notebooks (10%)**
-    *   100%: Exceptional documentation, notebooks structured by CRISP-DM, detailed markdown, docstrings, complete README.
-    *   80%: Good documentation, clear notebooks, commented code.
-    *   60%: Basic documentation, functional notebooks.
-    *   40%: Scarce or confusing documentation.
-    *   20%: No documentation.
+9.  **Documentation, Notebooks, and Narrative (10%)**
+    *   100%: Exceptional documentation. The README is exhaustive, detailing project setup, execution, structure, and key findings. Docstrings are comprehensive and follow a standard style (e.g., Google). Notebooks present a clear, compelling narrative, structured by CRISP-DM phases, with insightful markdown explanations for each step, high-quality, well-labeled visualizations, and concrete conclusions drawn from the analysis. The code within notebooks is itself clean and well-commented.
+    *   80%: Good documentation. The README includes setup and execution. Notebooks are well-structured with markdown explanations and clear visualizations. Docstrings are present and informative.
+    *   60%: Basic documentation. A functional README exists. Notebooks are functional but lack a clear narrative or detailed explanations. Code may be uncommented.
+    *   40%: Deficient or confusing documentation. The README is missing key information. Notebooks are messy, difficult to follow, or lack explanations.
+    *   20%: No meaningful documentation or notebooks are just code dumps.
 
 10. **Reproducibility and Best Practices (10%)**
-    *   100%: Completely reproducible, \`requirements.txt\`, \`parameters.yml\`, logging, tests, PEP8, \`.env\` for credentials.
-    *   80%: Reproducible with good practices implemented.
-    *   60%: Basically reproducible, some good practices.
-    *   40%: Reproducibility problems.
-    *   20%: Not reproducible.
+    *   100%: Production-level. The project is 100% reproducible with a single command. Uses a locked dependency file (e.g., \`poetry.lock\`, \`pip-compile\`). Configuration is impeccably managed (e.g., \`parameters.yml\`). **Includes a suite of meaningful unit tests (e.g., using \`pytest\`)** in a \`tests/\` directory. Uses and configures linters and formatters (e.g., Black, Pylint) to ensure consistent, professional code quality. No secrets are committed.
+    *   80%: Reproducible with good practices. Dependencies are listed. Code is consistent. May use a linter/formatter. May have some basic tests.
+    *   60%: Basically reproducible, some good practices. Includes a requirements.txt, but code style is inconsistent. No tests.
+    *   40%: Reproducibility problems. Missing or incomplete dependency files.
+    *   20%: Not reproducible, lacks basic configuration and consistency.
 `;

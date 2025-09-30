@@ -8,7 +8,7 @@ import { getRepoContents } from './services/githubService';
 import { evaluateProject } from './services/geminiService';
 import { DEFAULT_RUBRIC } from './constants';
 import type { EvaluationResult, GitHubFile } from './types';
-import { GithubIcon } from './components/icons';
+import { GithubIcon, InfoIcon } from './components/icons';
 
 const MAX_PROMPT_CHARS = 100000; // Límite de caracteres para el contenido de los archivos
 
@@ -59,13 +59,16 @@ ${file.content}
 
     try {
       setLoadingMessage('Obteniendo archivos del repositorio desde GitHub...');
-      const { files, repoName: extractedRepoName } = await getRepoContents(repoUrl);
+      const { files, repoName: extractedRepoName, envFileWarning } = await getRepoContents(repoUrl);
       setRepoName(extractedRepoName);
       if (files.length === 0) {
         throw new Error('No se pudieron obtener archivos del repositorio. Podría ser privado, estar vacío o la URL es incorrecta.');
       }
       
-      const projectContext = formatFilesForPrompt(files);
+      let projectContext = formatFilesForPrompt(files);
+      if (envFileWarning) {
+        projectContext = envFileWarning + projectContext;
+      }
       
       setLoadingMessage('La IA de Gemini está analizando el código... Esto puede tardar un momento.');
       const result = await evaluateProject(projectContext, rubric);
@@ -95,14 +98,25 @@ ${file.content}
           onAnalyze={handleAnalyze}
           isLoading={isLoading}
         />
+        <div className="mt-6 bg-gray-800/60 border border-yellow-700/50 text-yellow-300/80 px-4 py-3 rounded-lg flex items-start gap-3">
+          <InfoIcon className="w-5 h-5 mt-0.5 flex-shrink-0 text-yellow-400" />
+          <div>
+            <strong className="font-semibold">Nota para Educadores:</strong>
+            <p className="text-sm">Esta herramienta es un asistente de evaluación. Aunque la IA es rigurosa, se recomienda utilizar este reporte como un punto de partida y realizar una revisión final para validar los hallazgos.</p>
+          </div>
+        </div>
+        
         {isLoading && <Loader message={loadingMessage} />}
+        
         {error && (
           <div className="mt-8 bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg" role="alert">
             <strong className="font-bold">Error: </strong>
             <span className="block sm:inline">{error}</span>
           </div>
         )}
+
         {evaluation && !isLoading && <EvaluationReport result={evaluation} repoName={repoName} />}
+        
          <footer className="text-center text-gray-500 mt-12 py-4 border-t border-gray-700">
           <p>Desarrollado con Gemini AI y React</p>
           <a href="https://github.com/google-gemini" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-white transition-colors">
