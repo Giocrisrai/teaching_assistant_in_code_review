@@ -1,108 +1,147 @@
-// FIX: Implement Gemini API call for project evaluation.
 import { GoogleGenAI, Type } from "@google/genai";
-import type { EvaluationResult } from '../types';
+import type { GitHubFile, EvaluationResult } from '../types';
 
-// Per guidelines, initialize with API key from environment variables.
-const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+// FIX: Implement the Gemini service to communicate with the Google GenAI API.
+// This file contains the core logic for analyzing repository contents against a rubric.
 
-// Define the JSON schema for the model's response, matching the EvaluationResult type.
-const responseSchema = {
-    type: Type.OBJECT,
-    properties: {
-        overallScore: { 
-            type: Type.NUMBER, 
-            description: "Puntaje general del proyecto de 0 a 100, calculado como el promedio ponderado de los criterios de la rúbrica." 
-        },
-        summary: { 
-            type: Type.STRING, 
-            description: "Resumen detallado y objetivo de la evaluación general del proyecto, destacando fortalezas y debilidades." 
-        },
-        professionalismSummary: { 
-            type: Type.STRING, 
-            description: "Análisis específico sobre profesionalismo, buenas prácticas, estructura de carpetas, y seguridad (ej. presencia de archivos .env)." 
-        },
-        report: {
-            type: Type.ARRAY,
-            description: "Un arreglo de objetos, donde cada objeto representa la evaluación de un criterio de la rúbrica.",
-            items: {
-                type: Type.OBJECT,
-                properties: {
-                    criterion: { type: Type.STRING, description: "El nombre exacto del criterio evaluado de la rúbrica." },
-                    score: { type: Type.NUMBER, description: "Puntaje de 0 a 100 para este criterio." },
-                    feedback: { type: Type.STRING, description: "Feedback detallado, constructivo y específico para este criterio, con ejemplos del código si es posible." }
-                },
-                required: ["criterion", "score", "feedback"]
-            }
-        },
-        finalChileanGrade: { 
-            type: Type.NUMBER, 
-            description: "La nota final convertida a la escala chilena de 1.0 a 7.0. Calculada como (overallScore / 100) * 6.0 + 1.0."
-        }
+// Per instructions, initialize the client with the API key from environment variables.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+// Schema for the JSON output from the Gemini model, matching the EvaluationResult type.
+const evaluationSchema = {
+  type: Type.OBJECT,
+  properties: {
+    overallScore: {
+      type: Type.NUMBER,
+      description: 'Puntuación general de 0 a 100, calculada como el promedio de las puntuaciones de todos los criterios.',
     },
-    required: ["overallScore", "summary", "professionalismSummary", "report", "finalChileanGrade"]
+    summary: {
+      type: Type.STRING,
+      description: 'Resumen general detallado de la evaluación, destacando fortalezas y debilidades clave. Debe estar en formato Markdown.',
+    },
+    professionalismSummary: {
+        type: Type.STRING,
+        description: 'Análisis específico sobre profesionalismo, buenas prácticas, reproducibilidad y seguridad. Debe estar en formato Markdown.'
+    },
+    report: {
+      type: Type.ARRAY,
+      description: 'Desglose de la evaluación por cada criterio de la rúbrica.',
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          criterion: {
+            type: Type.STRING,
+            description: 'Nombre del criterio evaluado, extraído exactamente de la rúbrica.',
+          },
+          score: {
+            type: Type.NUMBER,
+            description: 'Puntuación asignada de 0 a 100 para este criterio específico.',
+          },
+          feedback: {
+            type: Type.STRING,
+            description: 'Feedback detallado y constructivo para este criterio, explicando la puntuación asignada. Debe estar en formato Markdown y mencionar archivos o rutas específicas (ej. `src/pipelines/data_processing/nodes.py`) cuando sea relevante para justificar el feedback.',
+          },
+        },
+        required: ['criterion', 'score', 'feedback'],
+      },
+    },
+    finalChileanGrade: {
+      type: Type.NUMBER,
+      description: 'La nota final en escala chilena de 1.0 a 7.0. Se calcula como: `((overallScore / 100) * 6) + 1`. Debe redondearse a un decimal.'
+    }
+  },
+  required: ['overallScore', 'summary', 'professionalismSummary', 'report', 'finalChileanGrade'],
 };
 
 
 /**
- * Sends the project context and rubric to the Gemini API for evaluation.
- * @param projectContext - A string containing all the relevant file paths and their content.
+ * Sends repository files and a rubric to the Gemini API for evaluation.
+ * @param files - An array of files from the GitHub repository.
  * @param rubric - The evaluation rubric as a string.
+ * @param envFileWarning - A warning string if a .env file was found.
  * @returns A promise that resolves to an EvaluationResult object.
  */
-export async function evaluateProject(projectContext: string, rubric: string): Promise<EvaluationResult> {
+export async function evaluateRepoWithGemini(
+  files: GitHubFile[],
+  rubric: string,
+  envFileWarning: string
+): Promise<EvaluationResult> {
+  const fileContents = files
+    .map(file => `
+--- INICIO ARCHIVO: ${file.path} ---
+\`\`\`
+${file.content}
+\`\`\`
+--- FIN ARCHIVO: ${file.path} ---
+`)
+    .join('\n');
+
+  const systemInstruction = `Eres un experto en ingeniería de software y ciencia de datos, actuando como un asistente de profesor riguroso, justo y constructivo para evaluar proyectos universitarios.
+
+Tu tarea es analizar el código y los archivos de un repositorio y evaluarlo estrictamente según la rúbrica proporcionada.
+
+**Instrucciones Clave:**
+1.  **Rúbrica Estricta:** Basa TODA tu evaluación en los criterios y puntajes definidos en la rúbrica. No inventes criterios.
+2.  **Feedback Específico:** Tu feedback debe ser concreto, mencionando archivos y rutas (ej. \`conf/base/parameters.yml\`) o funciones específicas para justificar tus puntos. En lugar de "el código no es modular", di "la función 'process_data' en 'src/nodes.py' es muy larga y viola el Principio de Responsabilidad Única".
+3.  **Justificación Cuantitativa:** Justifica cada puntaje. Si asignas 80/100, explica qué faltó para alcanzar el 100.
+4.  **Formato JSON Obligatorio:** Debes devolver SIEMPRE un único objeto JSON que se ajuste al esquema proporcionado. No incluyas texto, markdown o explicaciones fuera de este objeto JSON.
+5.  **Cálculo de Puntajes:**
+    -   El 'score' para cada criterio debe estar entre 0 y 100.
+    -   El 'overallScore' debe ser el promedio exacto de los 'score' de todos los criterios del 'report'.
+    -   La 'finalChileanGrade' se calcula como \`((overallScore / 100) * 6) + 1\`, redondeado a un decimal.
+6.  **Análisis de Profesionalismo:** Presta especial atención a la reproducibilidad (\`requirements.txt\`), calidad del código (PEP8), configuración (\`parameters.yml\`), y seguridad. El \`professionalismSummary\` debe enfocarse en estos aspectos transversales.
+7.  **Alerta de Seguridad:** Si se proporciona una alerta de seguridad (como la presencia de un archivo \`.env\`), DEBES mencionarla de forma prominente y crítica en el \`professionalismSummary\` y en el feedback del criterio de 'Buenas Prácticas', aplicando una penalización severa en el puntaje de ese criterio.
+`;
+
   const prompt = `
-    Eres un Profesor Asistente Senior (Ayudante Principal) de una carrera de Ingeniería Informática. Tu rol es evaluar el proyecto de un estudiante de tercer año. Sé riguroso y justo, pero tu objetivo principal es **educativo**.
+**Rúbrica de Evaluación:**
+---
+${rubric}
+---
 
-    **Instrucciones Clave:**
-    1.  **Rol de Mentor:** Tu tono debe ser constructivo y de mentoría. No solo señales los errores, explica **por qué** son problemáticos desde la perspectiva de la ingeniería de software y sugiere **cómo** se podrían mejorar, citando conceptos que un estudiante de este nivel debería conocer (ej. 'Esto podría mejorarse aplicando el Principio de Responsabilidad Única de SOLID...', 'Una buena práctica aquí sería usar un diccionario para evitar ifs anidados...').
-    2.  **Analiza el Contexto:** Revisa la lista de archivos y el contenido de cada uno para entender la implementación del proyecto. Presta especial atención a la ALERTA DE SEGURIDAD si aparece.
-    3.  **Analiza la Estructura del Directorio:** Basado en la 'Lista completa de archivos en el proyecto', evalúa si la estructura de carpetas sigue las convenciones comunes. Menciona las desviaciones significativas y sugiere mejoras.
-    4.  **Aplica la Rúbrica (Calibrada):** Evalúa el proyecto criterio por criterio según la rúbrica. Recuerda que estás evaluando a un estudiante, no a un ingeniero senior. Un código que funciona, está razonablemente organizado y cumple los requisitos debe recibir una buena calificación, reservando la excelencia para quienes demuestran un dominio superior.
-    5.  **Puntajes:** Asigna un puntaje de 0 a 100 para CADA criterio.
-    6.  **Feedback Detallado:** Para cada criterio, proporciona un feedback específico y bien fundamentado en markdown. Cita fragmentos de código o nombres de archivo para ilustrar tus puntos. Reconoce también los aciertos.
-    7.  **Calcula el Puntaje General:** El puntaje general debe ser el promedio ponderado de los puntajes de los criterios, basado en los porcentajes indicados en la rúbrica.
-    8.  **Convierte a Nota Chilena:** Convierte el puntaje general (0-100) a la escala de notas de Chile (1.0 a 7.0) usando la fórmula: \`Nota = (Puntaje / 100) * 6.0 + 1.0\`. Redondea a un decimal.
-    9.  **Resumen General y Profesionalismo:** Escribe los resúmenes solicitados en markdown.
-    10. **Formato de Salida:** Debes responder ÚNICAMENTE con un objeto JSON que siga el esquema proporcionado. No incluyas texto antes o después del JSON, ni uses markdown de bloque de código (como \`\`\`json).
+${envFileWarning}
 
-    --- INICIO DE LA RÚBRICA DE EVALUACIÓN ---
-    ${rubric}
-    --- FIN DE LA RÚBRICA DE EVALUACIÓN ---
+**Contenido del Repositorio:**
+---
+${fileContents}
+---
 
-    --- INICIO DEL CONTEXTO DEL PROYECTO (ARCHIVOS Y CONTENIDO) ---
-    ${projectContext}
-    --- FIN DEL CONTEXTO DEL PROYECTO ---
-
-    Ahora, proporciona tu evaluación completa en el formato JSON solicitado.
-  `;
+Por favor, evalúa el repositorio basándote en la rúbrica y el contenido de los archivos. Genera el reporte completo en el formato JSON especificado.
+`;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
       config: {
+        systemInstruction: systemInstruction,
         responseMimeType: "application/json",
-        responseSchema: responseSchema,
-        temperature: 0.2, // Lower temperature for more consistent and objective evaluations.
+        responseSchema: evaluationSchema,
+        temperature: 0.2, // Lower temperature for more consistent and factual evaluation
       },
     });
+
+    const jsonText = response.text.trim();
+    // The model is instructed to return valid JSON matching the schema.
+    const result: EvaluationResult = JSON.parse(jsonText);
     
-    // Per guidelines, access text directly.
-    const resultText = response.text;
-    if (!resultText) {
-        throw new Error("La respuesta de la IA está vacía.");
+    // As a safeguard, recalculate scores to ensure consistency, in case the model makes a math error.
+    if (result.report && result.report.length > 0) {
+      const totalScore = result.report.reduce((acc, item) => acc + item.score, 0);
+      const calculatedOverallScore = totalScore / result.report.length;
+      result.overallScore = parseFloat(calculatedOverallScore.toFixed(1));
+
+      const calculatedGrade = (result.overallScore / 100) * 6 + 1;
+      result.finalChileanGrade = parseFloat(Math.min(7.0, Math.max(1.0, calculatedGrade)).toFixed(1));
     }
-    
-    const result: EvaluationResult = JSON.parse(resultText);
+
     return result;
 
-  } catch (error: any) {
-    console.error("Error al llamar a la API de Gemini o al parsear la respuesta:", error);
-    let errorMessage = "Ocurrió un error al comunicarse con la IA de Gemini. Revisa la consola para más detalles.";
-    if (error instanceof SyntaxError) {
-        errorMessage = "La respuesta de la IA no es un JSON válido. Esto puede ocurrir por filtros de seguridad o un problema en el modelo. Por favor, intenta de nuevo.";
-    } else if (error.message) {
-        errorMessage = `Error de la API: ${error.message}`;
+  } catch (error) {
+    console.error('Error al llamar a la API de Gemini:', error);
+    let errorMessage = 'No se pudo completar la evaluación debido a un error con el servicio de IA.';
+    if (error instanceof Error) {
+        errorMessage += ` Detalles: ${error.message}`;
     }
     throw new Error(errorMessage);
   }

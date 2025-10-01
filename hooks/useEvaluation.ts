@@ -1,73 +1,54 @@
 import { useState, useCallback } from 'react';
+import type { EvaluationResult } from '../types';
 import { getRepoContents } from '../services/githubService';
-import { evaluateProject } from '../services/geminiService';
-import type { EvaluationResult, GitHubFile } from '../types';
+import { evaluateRepoWithGemini } from '../services/geminiService';
+import { getCriteriaFromRubric } from '../utils/rubricParser';
 
-const MAX_PROMPT_CHARS = 100000; // Character limit for file contents
+// FIX: Implement the useEvaluation custom hook to manage the state and logic for the repository analysis process.
 
-const formatFilesForPrompt = (files: GitHubFile[]): string => {
-  let content = '';
-  let characterCount = 0;
-  const allFilePaths = files.map(f => f.path).join('\n');
-  
-  content += `Lista completa de archivos en el proyecto:\n${allFilePaths}\n\n--- INICIO DEL CONTENIDO DE ARCHIVOS ---\n`;
-
-  for (const file of files) {
-    const fileContent = `
---- ARCHIVO: ${file.path} ---
-\`\`\`
-${file.content}
-\`\`\`
---- FIN ARCHIVO: ${file.path} ---
-    `;
-    if (characterCount + fileContent.length > MAX_PROMPT_CHARS) {
-      content += "\n--- NOTA: El contenido de los archivos restantes ha sido truncado para no exceder el límite de contexto. Evaluar en base a la estructura de archivos y el contenido disponible. ---";
-      break;
-    }
-    content += fileContent;
-    characterCount += fileContent.length;
-  }
-
-  return content;
-};
-
-export const useEvaluation = () => {
-  const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
+export function useEvaluation() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [evaluationResult, setEvaluationResult] = useState<EvaluationResult | null>(null);
+  const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [repoName, setRepoName] = useState<string>('');
 
-  const analyze = useCallback(async (repoUrl: string, rubric: string) => {
-    if (!repoUrl) {
-      setError('Por favor, ingresa una URL de repositorio de GitHub válida.');
-      return;
-    }
-
+  const analyzeRepo = useCallback(async (repoUrl: string, rubric: string) => {
     setIsLoading(true);
     setError(null);
-    setEvaluation(null); // Clear previous evaluation for better UX
+    setEvaluationResult(null);
+    setRepoName('');
 
     try {
-      setLoadingMessage('Obteniendo archivos del repositorio desde GitHub...');
-      const { files, repoName: extractedRepoName, envFileWarning } = await getRepoContents(repoUrl);
-      setRepoName(extractedRepoName);
+      // Step 1: Validate Rubric
+      setLoadingMessage('Validando la rúbrica...');
+      const criteria = getCriteriaFromRubric(rubric);
+      if (criteria.length === 0) {
+        throw new Error("La rúbrica proporcionada no tiene un formato válido o no contiene criterios. Asegúrate de que cada criterio comience con '## X. ...'.");
+      }
+      console.log(`Rúbrica validada, ${criteria.length} criterios encontrados.`);
+
+      // Step 2: Fetch repo contents
+      setLoadingMessage('Obteniendo contenido del repositorio desde GitHub...');
+      const { files, repoName: fetchedRepoName, envFileWarning } = await getRepoContents(repoUrl);
+      setRepoName(fetchedRepoName);
+      console.log(`Se obtuvieron ${files.length} archivos relevantes de '${fetchedRepoName}'.`);
+
       if (files.length === 0) {
-        throw new Error('No se pudieron obtener archivos del repositorio. Podría ser privado, estar vacío o la URL es incorrecta.');
+        throw new Error("No se encontraron archivos relevantes para analizar en el repositorio o la ruta especificada.");
       }
       
-      let projectContext = formatFilesForPrompt(files);
-      if (envFileWarning) {
-        projectContext = envFileWarning + projectContext;
-      }
-      
-      setLoadingMessage('La IA de Gemini está analizando el código... Esto puede tardar un momento.');
-      const result = await evaluateProject(projectContext, rubric);
-      
-      setEvaluation(result);
+      // Step 3: Call Gemini API for evaluation
+      setLoadingMessage(`Analizando ${files.length} archivos con el modelo de IA. Esto puede tardar un momento...`);
+      const result = await evaluateRepoWithGemini(files, rubric, envFileWarning);
+      console.log('Evaluación completada:', result);
+
+      // Final Step: Set result
+      setEvaluationResult(result);
+
     } catch (e: any) {
-      console.error(e);
-      setError(e.message || 'Ocurrió un error inesperado durante el análisis. Revisa la consola para más detalles.');
+      console.error('Error durante el proceso de evaluación:', e);
+      setError(e.message || 'Ocurrió un error desconocido.');
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
@@ -75,11 +56,11 @@ export const useEvaluation = () => {
   }, []);
 
   return {
-    evaluation,
     isLoading,
-    loadingMessage,
     error,
+    evaluationResult,
+    loadingMessage,
     repoName,
-    analyze,
+    analyzeRepo,
   };
-};
+}

@@ -1,73 +1,67 @@
-import React, { useState, useCallback } from 'react';
-import { Header } from './components/Header';
-import { RepoInputForm } from './components/RepoInputForm';
-import { EvaluationReport } from './components/EvaluationReport';
-import { Loader } from './components/Loader';
+import React, { useState } from 'react';
 import { DEFAULT_RUBRIC } from './constants';
-import { GithubIcon, InfoIcon } from './components/icons';
 import { useEvaluation } from './hooks/useEvaluation';
 
-const App: React.FC = () => {
-  const [repoUrl, setRepoUrl] = useState<string>('https://github.com/Nazabkn/ML_MyE.git');
+import { Header } from './components/Header';
+import { RepoInputForm } from './components/RepoInputForm';
+import { Loader } from './components/Loader';
+import { EvaluationReport } from './components/EvaluationReport';
+import { InfoIcon } from './components/icons';
+
+// FIX: Implement the main App component to structure the application UI and manage state.
+function App() {
+  const [repoUrl, setRepoUrl] = useState<string>('');
   const [rubric, setRubric] = useState<string>(DEFAULT_RUBRIC);
 
   const {
-    evaluation,
     isLoading,
-    loadingMessage,
     error,
+    evaluationResult,
+    loadingMessage,
     repoName,
-    analyze,
+    analyzeRepo,
   } = useEvaluation();
 
-  const handleAnalyzeClick = useCallback(() => {
-    analyze(repoUrl, rubric);
-  }, [repoUrl, rubric, analyze]);
+  const handleAnalyze = () => {
+    if (repoUrl && rubric) {
+      analyzeRepo(repoUrl, rubric);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 font-sans">
+    <div className="bg-gray-900 text-gray-100 min-h-screen font-sans">
       <Header />
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <p className="text-center text-gray-400 mb-8">
-          Ingresa la URL de un repositorio público de GitHub y una rúbrica de evaluación. La IA analizará el código y proporcionará una evaluación detallada basada en tus criterios.
-        </p>
+      <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-4xl">
         <RepoInputForm
           repoUrl={repoUrl}
           setRepoUrl={setRepoUrl}
           rubric={rubric}
           setRubric={setRubric}
-          onAnalyze={handleAnalyzeClick}
+          onAnalyze={handleAnalyze}
           isLoading={isLoading}
         />
-        <div className="mt-6 bg-gray-800/60 border border-yellow-700/50 text-yellow-300/80 px-4 py-3 rounded-lg flex items-start gap-3">
-          <InfoIcon className="w-5 h-5 mt-0.5 flex-shrink-0 text-yellow-400" />
-          <div>
-            <strong className="font-semibold">Nota para Educadores:</strong>
-            <p className="text-sm">Esta herramienta es un asistente de evaluación. Aunque la IA es rigurosa, se recomienda utilizar este reporte como un punto de partida y realizar una revisión final para validar los hallazgos.</p>
-          </div>
-        </div>
-        
+
         {isLoading && <Loader message={loadingMessage} />}
-        
+
         {error && (
-          <div className="mt-8 bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg" role="alert">
-            <strong className="font-bold">Error: </strong>
-            <span className="block sm:inline">{error}</span>
+          <div className="mt-8 p-4 bg-red-900/50 border border-red-700 rounded-lg flex items-start space-x-3 animate-fade-in">
+            <InfoIcon className="w-5 h-5 text-red-400 flex-shrink-0 mt-1" />
+            <div>
+              <h3 className="font-bold text-red-300">Error en el Análisis</h3>
+              <p className="text-red-300/90">{error}</p>
+            </div>
           </div>
         )}
 
-        {evaluation && !isLoading && <EvaluationReport result={evaluation} repoName={repoName} />}
-        
-         <footer className="text-center text-gray-500 mt-12 py-4 border-t border-gray-700">
-          <p>Desarrollado con Gemini AI y React</p>
-          <a href="https://github.com/google-gemini" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-white transition-colors">
-            <GithubIcon className="w-5 h-5" />
-            <span>Visita Gemini en GitHub</span>
-          </a>
-        </footer>
+        {evaluationResult && repoName && !isLoading && (
+          <EvaluationReport result={evaluationResult} repoName={repoName} />
+        )}
       </main>
+      <footer className="text-center p-4 text-xs text-gray-500">
+        <p>&copy; {new Date().getFullYear()} Revisor de Código con IA. Creado con React, TypeScript y Gemini.</p>
+      </footer>
     </div>
   );
-};
+}
 
 export default App;

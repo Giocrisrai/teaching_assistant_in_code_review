@@ -14,6 +14,8 @@ export const generatePdf = async (elementId: string, repoName: string) => {
             scale: 2, // Aumenta la resolución para mejor calidad
             backgroundColor: '#1f2937', // bg-gray-800
             useCORS: true,
+            windowWidth: reportElement.scrollWidth,
+            windowHeight: reportElement.scrollHeight,
         });
 
         const imgData = canvas.toDataURL('image/png');
@@ -25,25 +27,31 @@ export const generatePdf = async (elementId: string, repoName: string) => {
 
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const ratio = canvasWidth / canvasHeight;
+        const canvasAspectRatio = canvas.width / canvas.height;
 
-        // Ajustar el ancho de la imagen al ancho del PDF con un pequeño margen
-        const imgWidth = pdfWidth - 40;
-        const imgHeight = imgWidth / ratio;
-        let heightLeft = imgHeight;
-        let position = 20; // Margen superior inicial
+        // Set margins for the PDF
+        const margin = 40; // 20pt on each side
+        const contentWidth = pdfWidth - margin;
+        const contentHeight = contentWidth / canvasAspectRatio;
+        
+        // The available height for content on one page
+        const pageContentHeight = pdfHeight - margin;
 
-        pdf.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
-        heightLeft -= (pdfHeight - 40);
+        let heightLeft = contentHeight;
+        let position = 0; // This will track the vertical offset for the image
 
-        // Si el contenido es más alto que una página, agregar páginas adicionales
+        // Add the first page
+        // The image is added at full height, but it will be clipped by the page boundary
+        pdf.addImage(imgData, 'PNG', margin / 2, margin / 2, contentWidth, contentHeight);
+        heightLeft -= pageContentHeight;
+
+        // Loop to add new pages if the content is taller than a single page
         while (heightLeft > 0) {
+            position -= pageContentHeight; // Move the vertical position up by one page height
             pdf.addPage();
-            position = -heightLeft - 20; // Mover la imagen hacia arriba
-            pdf.addImage(imgData, 'PNG', 20, position, imgWidth, imgHeight);
-            heightLeft -= (pdfHeight - 40);
+            // Add the same image, but at the new negative vertical position
+            pdf.addImage(imgData, 'PNG', margin / 2, position + (margin / 2), contentWidth, contentHeight);
+            heightLeft -= pageContentHeight;
         }
 
         pdf.save(`reporte-evaluacion-${repoName}.pdf`);

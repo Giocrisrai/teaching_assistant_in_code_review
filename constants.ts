@@ -1,28 +1,84 @@
 // FIX: The original file was plain text, not a valid TypeScript module.
 // This wraps the rubric text in a template string and exports it as a constant.
-export const DEFAULT_RUBRIC = `# Rúbrica de Evaluación de Proyecto de Software (Nivel Universitario - 3er Año)
+export const DEFAULT_RUBRIC = `# Rúbrica de Evaluación: Proyecto Machine Learning con Kedro (Nivel Universitario - 3er Año)
 
-## 1. Funcionalidad y Correctitud (30%)
-- **(30 pts) Excelente:** El programa cumple con todos los requisitos funcionales. Es robusto, maneja correctamente todos los casos borde y no tiene errores observables.
-- **(20 pts) Bueno:** El programa cumple con los requisitos principales y la funcionalidad central es correcta. Puede tener algunos bugs menores o no manejar todos los casos borde de forma ideal.
-- **(10 pts) Suficiente:** El programa se ejecuta pero tiene errores significativos que afectan su funcionalidad principal o no cumple con varios requisitos.
-- **(0 pts) Insuficiente:** El programa no se ejecuta, tiene errores críticos que impiden su uso o no cumple con los requisitos básicos.
+## 1. Estructura y Configuración del Proyecto Kedro (10%)
+- **(100 pts) Muy buen desempeño:** Proyecto Kedro perfectamente estructurado, configuración completa en \`conf/\`, README detallado, estructura modular clara.
+- **(80 pts) Buen desempeño:** Proyecto bien estructurado, configuración funcional, documentación adecuada.
+- **(60 pts) Desempeño aceptable:** Estructura básica funcional, configuración mínima operativa.
+- **(40 pts) Desempeño incipiente:** Errores en estructura, configuración incompleta.
+- **(20 pts) Desempeño insuficiente:** No usa Kedro o estructura incorrecta.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
 
-## 2. Calidad y Estructura del Código (30%)
-- **(30 pts) Excelente:** El código demuestra un entendimiento avanzado. El proyecto sigue una estructura de directorios convencional y escalable. El código está organizado lógicamente en módulos/clases que aplican principios de diseño como SOLID, promoviendo una arquitectura desacoplada y mantenible. Es altamente legible y sigue consistentemente las guías de estilo.
-- **(20 pts) Bueno:** El código está bien organizado, es legible y sigue las guías de estilo. Las funciones y módulos tienen una responsabilidad clara. Es un código limpio y mantenible que cumple con un buen estándar profesional para un estudiante.
-- **(10 pts) Suficiente:** El código funciona pero tiene problemas de estructura. Puede estar desorganizado (ej. lógica mezclada, todo en un solo archivo), ser difícil de leer o inconsistente en su estilo.
-- **(0 pts) Insuficiente:** El código es caótico, ilegible y no sigue ninguna buena práctica de estructuración.
+## 2. Implementación del Catálogo de Datos (10%)
+- **(100 pts) Muy buen desempeño:** 3+ datasets correctamente configurados, múltiples formatos (CSV, Excel, Parquet), parametrización, versionado.
+- **(80 pts) Buen desempeño:** 3 datasets bien configurados, formatos apropiados.
+- **(60 pts) Desempeño aceptable:** 3 datasets básicos funcionales.
+- **(40 pts) Desempeño incipiente:** Menos de 3 datasets o errores significativos.
+- **(20 pts) Desempeño insuficiente:** Sin catálogo o mal configurado.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
 
-## 3. Documentación y Comentarios (20%)
-- **(20 pts) Excelente:** El proyecto incluye un archivo \`README.md\` ejemplar que explica el propósito, cómo instalar dependencias y cómo ejecutarlo de forma clara. El código tiene docstrings y comentarios útiles que explican el "porqué" de las decisiones complejas.
-- **(10 pts) Bueno:** La documentación es adecuada. Existe un \`README.md\` con las instrucciones básicas y el código tiene comentarios donde es necesario. Cumple con los requisitos para que otra persona entienda y ejecute el proyecto.
-- **(5 pts) Suficiente:** La documentación es escasa o incompleta. El \`README.md\` es muy básico o los comentarios son mínimos.
-- **(0 pts) Insuficiente:** No hay documentación o es completamente inútil.
+## 3. Desarrollo de Nodos y Funciones (10%)
+- **(100 pts) Muy buen desempeño:** Nodos altamente modulares, funciones puras, docstrings completos, manejo de errores, principios SOLID.
+- **(80 pts) Buen desempeño:** Nodos bien estructurados, buena documentación.
+- **(60 pts) Desempeño aceptable:** Nodos funcionales con modularidad básica.
+- **(40 pts) Desempeño incipiente:** Baja modularidad, funciones acopladas.
+- **(20 pts) Desempeño insuficiente:** Sin nodos o mal estructurados.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
 
-## 4. Buenas Prácticas y Profesionalismo (20%)
-- **(20 pts) Excelente:** Se aplican consistentemente las mejores prácticas. Se utiliza un archivo de gestión de dependencias (ej. \`requirements.txt\`, \`package.json\`). Se utiliza un archivo \`.gitignore\` completo y adecuado. No hay archivos sensibles (como \`.env\` o claves) subidos al repositorio. El historial de commits es limpio y descriptivo.
-- **(10 pts) Bueno:** Se aplican las prácticas esenciales. Existe un gestor de dependencias y un \`.gitignore\`. No se suben archivos sensibles. El historial de commits puede ser mejorable pero es funcional.
-- **(5 pts) Suficiente:** Uso inconsistente de buenas prácticas. Faltan elementos importantes como un \`.gitignore\` bien configurado o la gestión de dependencias no es ideal.
-- **(0 pts) Insuficiente:** Malas prácticas evidentes. Presencia de archivos sensibles en el repositorio (falta grave), no se gestionan dependencias, se suben archivos generados o binarios.
+## 4. Construcción de Pipelines (10%)
+- **(100 pts) Muy buen desempeño:** Pipelines organizados por fase CRISP-DM, uso de namespaces, dependencias claras, componibles.
+- **(80 pts) Buen desempeño:** Pipelines funcionales bien conectados.
+- **(60 pts) Desempeño aceptable:** Pipelines básicos operativos.
+- **(40 pts) Desempeño incipiente:** Problemas en dependencias o estructura.
+- **(20 pts) Desempeño insuficiente:** Sin pipelines o incorrectos.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 5. Análisis Exploratorio de Datos - EDA (10%)
+- **(100 pts) Muy buen desempeño:** EDA exhaustivo (univariado, bivariado, multivariado), visualizaciones interactivas, análisis de patrones en 3+ datasets.
+- **(80 pts) Buen desempeño:** EDA completo con buenos análisis y visualizaciones.
+- **(60 pts) Desempeño aceptable:** EDA básico con estadísticos descriptivos.
+- **(40 pts) Desempeño incipiente:** EDA superficial o incompleto.
+- **(20 pts) Desempeño insuficiente:** Sin EDA o extremadamente básico.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 6. Limpieza y Tratamiento de Datos (10%)
+- **(100 pts) Muy buen desempeño:** Estrategias diferenciadas por tipo de variable, manejo sofisticado de outliers/missing values, validación de integridad.
+- **(80 pts) Buen desempeño:** Buen tratamiento con estrategias justificadas.
+- **(60 pts) Desempeño aceptable:** Limpieza básica implementada.
+- **(40 pts) Desempeño incipiente:** Limpieza superficial o con errores.
+- **(20 pts) Desempeño insuficiente:** Sin limpieza o mal implementada.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 7. Transformación y Feature Engineering (10%)
+- **(100 pts) Muy buen desempeño:** Transformaciones avanzadas justificadas, feature engineering creativo, PCA si aplica, pipelines parametrizables.
+- **(80 pts) Buen desempeño:** Buenas transformaciones (scaling, encoding), features derivadas.
+- **(60 pts) Desempeño aceptable:** Transformaciones básicas (normalización/estandarización).
+- **(40 pts) Desempeño incipiente:** Transformaciones limitadas o mal aplicadas.
+- **(20 pts) Desempeño insuficiente:** Sin transformaciones necesarias.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 8. Identificación de Targets para ML (10%)
+- **(100 pts) Muy buen desempeño:** Múltiples targets correctos para regresión y clasificación, justificación sólida basada en negocio, análisis de viabilidad.
+- **(80 pts) Buen desempeño:** Targets principales correctos con buena justificación.
+- **(60 pts) Desempeño aceptable:** Targets básicos correctos.
+- **(40 pts) Desempeño incipiente:** Identificación confusa o parcialmente incorrecta.
+- **(20 pts) Desempeño insuficiente:** Sin identificación o completamente mal definidos.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 9. Documentación y Notebooks (10%)
+- **(100 pts) Muy buen desempeño:** Documentación excepcional, notebooks estructurados por CRISP-DM, markdown detallado, docstrings, README completo.
+- **(80 pts) Buen desempeño:** Buena documentación, notebooks claros, código comentado.
+- **(60 pts) Desempeño aceptable:** Documentación básica, notebooks funcionales.
+- **(40 pts) Desempeño incipiente:** Documentación escasa o confusa.
+- **(20 pts) Desempeño insuficiente:** Sin documentación.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 10. Reproducibilidad y Mejores Prácticas (10%)
+- **(100 pts) Muy buen desempeño:** Completamente reproducible, \`requirements.txt\`, \`parameters.yml\`, logging, tests, PEP8, \`.env\` para credenciales.
+- **(80 pts) Buen desempeño:** Reproducible con buenas prácticas implementadas.
+- **(60 pts) Desempeño aceptable:** Básicamente reproducible, algunas buenas prácticas.
+- **(40 pts) Desempeño incipiente:** Problemas de reproducibilidad.
+- **(20 pts) Desempeño insuficiente:** No reproducible.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
 `;
