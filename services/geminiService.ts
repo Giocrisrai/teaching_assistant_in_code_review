@@ -47,7 +47,7 @@ const evaluationSchema = {
     },
     finalChileanGrade: {
       type: Type.NUMBER,
-      description: 'La nota final en escala chilena de 1.0 a 7.0. Se calcula como: `((overallScore / 100) * 6) + 1`. Debe redondearse a un decimal.'
+      description: 'La nota final en escala chilena de 1.0 a 7.0. Se calcula como: `((overallScore / 100) * 6) + 1`. Debe truncarse a un decimal (sin redondear).'
     }
   },
   required: ['overallScore', 'summary', 'professionalismSummary', 'report', 'finalChileanGrade'],
@@ -88,12 +88,12 @@ Tu tarea es analizar el código y los archivos de un repositorio y evaluarlo est
 5.  **Cálculo de Puntajes:**
     -   El 'score' para cada criterio debe estar entre 0 y 100.
     -   El 'overallScore' debe ser el promedio exacto de los 'score' de todos los criterios del 'report'.
-    -   La 'finalChileanGrade' se calcula como \`((overallScore / 100) * 6) + 1\`, redondeado a un decimal.
+    -   La 'finalChileanGrade' se calcula como \`((overallScore / 100) * 6) + 1\`, truncado a un decimal (sin redondear).
 6.  **Análisis de Profesionalismo:** Presta especial atención a la reproducibilidad (\`requirements.txt\`), calidad del código (PEP8), configuración (\`parameters.yml\`), y seguridad. El \`professionalismSummary\` debe enfocarse en estos aspectos transversales.
 7.  **Alerta de Seguridad:** Si se proporciona una alerta de seguridad (como la presencia de un archivo \`.env\`), DEBES mencionarla de forma prominente y crítica en el \`professionalismSummary\` y en el feedback del criterio de 'Buenas Prácticas', aplicando una penalización severa en el puntaje de ese criterio.
 `;
 
-  const prompt = `
+  const userPrompt = `
 **Rúbrica de Evaluación:**
 ---
 ${rubric}
@@ -108,13 +108,14 @@ ${fileContents}
 
 Por favor, evalúa el repositorio basándote en la rúbrica y el contenido de los archivos. Genera el reporte completo en el formato JSON especificado.
 `;
+  
+  const combinedContent = `${systemInstruction}\n\n${userPrompt}`;
 
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: prompt,
+      contents: combinedContent,
       config: {
-        systemInstruction: systemInstruction,
         responseMimeType: "application/json",
         responseSchema: evaluationSchema,
         temperature: 0.2, // Lower temperature for more consistent and factual evaluation
@@ -132,7 +133,9 @@ Por favor, evalúa el repositorio basándote en la rúbrica y el contenido de lo
       result.overallScore = parseFloat(calculatedOverallScore.toFixed(1));
 
       const calculatedGrade = (result.overallScore / 100) * 6 + 1;
-      result.finalChileanGrade = parseFloat(Math.min(7.0, Math.max(1.0, calculatedGrade)).toFixed(1));
+      const clampedGrade = Math.min(7.0, Math.max(1.0, calculatedGrade));
+      // Truncate to one decimal place without rounding
+      result.finalChileanGrade = Math.floor(clampedGrade * 10) / 10;
     }
 
     return result;
