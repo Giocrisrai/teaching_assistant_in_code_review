@@ -1,4 +1,3 @@
-// FIX: Implement the RubricItem component to display a single criterion's evaluation.
 import React from 'react';
 import type { EvaluationItem } from '../types';
 import { getScoreColorClass } from '../utils/colors';
@@ -28,7 +27,7 @@ export const RubricItem: React.FC<RubricItemProps> = ({ item, isEditing, onScore
 
 
   return (
-    <div className={`bg-gray-900/70 border border-gray-700 rounded-lg p-4 transition-all duration-300 ${isEditing ? 'ring-2 ring-cyan-500/50' : 'hover:shadow-lg'}`}>
+    <div className={`bg-gray-900/50 border border-gray-700/80 rounded-lg p-4 transition-all duration-300 ${isEditing ? 'ring-2 ring-cyan-500/50' : 'hover:bg-gray-800/50 hover:border-gray-600 hover:scale-[1.01]'}`}>
       <div className="flex justify-between items-start gap-4">
         <h4 className="text-lg font-semibold text-gray-100 flex-1">{item.criterion}</h4>
         <div className="flex-shrink-0 flex items-center">
@@ -53,7 +52,7 @@ export const RubricItem: React.FC<RubricItemProps> = ({ item, isEditing, onScore
                 value={item.feedback}
                 onChange={handleFeedbackChange}
                 rows={6}
-                className="w-full bg-gray-900/80 p-2 rounded-md border border-gray-600 focus:border-cyan-500 focus:ring-cyan-500 focus:outline-none transition-colors font-sans text-sm text-gray-300"
+                className="w-full bg-gray-800/80 p-2 rounded-md border border-gray-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/50 focus:outline-none transition-colors font-sans text-sm text-gray-300"
             />
          ) : (
             <div className="prose prose-sm prose-invert max-w-none prose-p:text-gray-300 prose-ul:text-gray-300 prose-li:marker:text-cyan-400">

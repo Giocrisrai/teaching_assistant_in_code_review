@@ -34,28 +34,32 @@ function App() {
   };
 
   return (
-    <div className="bg-gray-900 text-gray-100 min-h-screen font-sans">
+    <div className="bg-transparent text-gray-100 min-h-screen font-sans">
       <Header />
-      <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-4xl">
-        <RepoInputForm
-          analysisSource={analysisSource}
-          setAnalysisSource={setAnalysisSource}
-          repoUrl={repoUrl}
-          setRepoUrl={setRepoUrl}
-          githubToken={githubToken}
-          setGithubToken={setGithubToken}
-          zipFile={zipFile}
-          setZipFile={setZipFile}
-          rubric={rubric}
-          setRubric={setRubric}
-          onAnalyze={handleAnalyze}
-          isLoading={isLoading}
-        />
+      <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-5xl">
+        <div className="animate-fade-in-up">
+            <h2 className="text-3xl font-bold text-center text-white mb-2">Inicia tu Análisis</h2>
+            <p className="text-center text-gray-400 mb-8">Selecciona una fuente, proporciona los detalles y deja que la IA haga el resto.</p>
+            <RepoInputForm
+              analysisSource={analysisSource}
+              setAnalysisSource={setAnalysisSource}
+              repoUrl={repoUrl}
+              setRepoUrl={setRepoUrl}
+              githubToken={githubToken}
+              setGithubToken={setGithubToken}
+              zipFile={zipFile}
+              setZipFile={setZipFile}
+              rubric={rubric}
+              setRubric={setRubric}
+              onAnalyze={handleAnalyze}
+              isLoading={isLoading}
+            />
+        </div>
 
-        {isLoading && <Loader message={loadingMessage} />}
+        {isLoading && <div className="animate-fade-in-up"><Loader message={loadingMessage} /></div>}
 
         {error && (
-          <div className="mt-8 p-4 bg-red-900/50 border border-red-700 rounded-lg flex items-start space-x-3 animate-fade-in">
+          <div className="mt-8 p-4 bg-red-900/50 border border-red-700 rounded-lg flex items-start space-x-3 animate-fade-in-up">
             <InfoIcon className="w-5 h-5 text-red-400 flex-shrink-0 mt-1" />
             <div>
               <h3 className="font-bold text-red-300">Error en el Análisis</h3>
@@ -65,10 +69,12 @@ function App() {
         )}
 
         {evaluationResult && repoName && !isLoading && (
-          <EvaluationReport result={evaluationResult} repoName={repoName} />
+          <div className="animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <EvaluationReport result={evaluationResult} repoName={repoName} />
+          </div>
         )}
       </main>
-      <footer className="text-center p-4 text-xs text-gray-500">
+      <footer className="text-center p-6 text-xs text-gray-500">
         <p>&copy; {new Date().getFullYear()} Revisor de Código con IA. Creado con React, TypeScript y Gemini.</p>
       </footer>
     </div>

@@ -1,6 +1,3 @@
-// FIX: Implement a utility function to parse the rubric text.
-// This is used for validation before calling the API.
-
 /**
  * Parses a markdown rubric to extract the main criteria titles.
  * Criteria are expected to be H2 markdown headers (e.g., "## 1. Criterio...").

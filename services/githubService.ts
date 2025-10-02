@@ -27,6 +27,7 @@ function parseRepoUrl(url: string): { owner: string; repo: string; branch: strin
     let branch: string | null = null;
     let path = '';
 
+    // Find the segment 'tree' or 'blob', which indicates the start of branch and path info
     const typeIndex = pathParts.findIndex(p => p === 'tree' || p === 'blob');
     
     if (typeIndex !== -1 && pathParts.length > typeIndex + 1) {

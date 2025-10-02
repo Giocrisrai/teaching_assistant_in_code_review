@@ -76,10 +76,10 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
   const isSubmitDisabled = isLoading || (analysisSource === 'github' && !repoUrl.trim()) || (analysisSource === 'zip' && !zipFile);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-gray-800/50 p-6 rounded-lg border border-gray-700">
+    <form onSubmit={handleSubmit} className="space-y-6 bg-gray-900/40 backdrop-blur-md p-6 sm:p-8 rounded-2xl border border-gray-700/80 shadow-2xl shadow-cyan-900/10">
       
       <div>
-        <div className="flex border-b border-gray-600">
+        <div className="flex justify-center bg-gray-800/60 p-1 rounded-full">
           <TabButton
             label="GitHub"
             icon={<GithubIcon className="h-5 w-5 mr-2" />}
@@ -124,7 +124,7 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
       </div>
 
       <div>
-        <label htmlFor="rubric" className="block text-sm font-medium text-gray-300 mb-1">
+        <label htmlFor="rubric" className="block text-sm font-medium text-gray-300 mb-2">
           Rúbrica de Evaluación
         </label>
         <textarea
@@ -133,7 +133,7 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
           rows={10}
           value={rubric}
           onChange={(e) => setRubric(e.target.value)}
-          className="block w-full rounded-md border-gray-600 bg-gray-900/50 py-2 px-3 text-gray-200 placeholder-gray-500 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm font-mono text-xs"
+          className="block w-full rounded-md border-gray-600 bg-gray-800/50 py-2 px-3 text-gray-200 placeholder-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/50 sm:text-sm font-mono text-xs"
           required
           disabled={isLoading}
         />
@@ -143,7 +143,7 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
         <button
           type="submit"
           disabled={isSubmitDisabled}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-semibold text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
         >
           {isLoading ? 'Analizando...' : (analysisSource === 'github' ? 'Analizar Repositorio' : 'Analizar Archivo ZIP')}
         </button>
@@ -159,12 +159,12 @@ const TabButton: React.FC<{ label: string; icon: React.ReactNode; isActive: bool
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className={`flex items-center px-4 py-2 text-sm font-medium border-b-2 -mb-px
+    className={`flex-1 flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-full
       ${isActive
-        ? 'border-cyan-500 text-cyan-400'
-        : 'border-transparent text-gray-400 hover:text-white hover:border-gray-400'
+        ? 'bg-cyan-500 text-white shadow'
+        : 'text-gray-300 hover:bg-white/5'
       }
-      focus:outline-none transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed`}
+      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-cyan-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
   >
     {icon}
     {label}
@@ -174,7 +174,7 @@ const TabButton: React.FC<{ label: string; icon: React.ReactNode; isActive: bool
 const GitHubInputFields: React.FC<any> = ({ repoUrl, setRepoUrl, githubToken, setGithubToken, showToken, setShowToken, isLoading }) => (
   <div className="space-y-6">
     <div>
-      <label htmlFor="repoUrl" className="block text-sm font-medium text-gray-300 mb-1">
+      <label htmlFor="repoUrl" className="block text-sm font-medium text-gray-300 mb-2">
         URL del Repositorio de GitHub
       </label>
       <div className="relative">
@@ -187,7 +187,7 @@ const GitHubInputFields: React.FC<any> = ({ repoUrl, setRepoUrl, githubToken, se
           name="repoUrl"
           value={repoUrl}
           onChange={(e) => setRepoUrl(e.target.value)}
-          className="block w-full rounded-md border-gray-600 bg-gray-900/50 pl-10 pr-3 py-2 text-gray-200 placeholder-gray-500 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm"
+          className="block w-full rounded-md border-gray-600 bg-gray-800/50 pl-10 pr-3 py-2 text-gray-200 placeholder-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/50 sm:text-sm"
           placeholder="https://github.com/owner/repo"
           required
           disabled={isLoading}
@@ -195,7 +195,7 @@ const GitHubInputFields: React.FC<any> = ({ repoUrl, setRepoUrl, githubToken, se
       </div>
     </div>
     <div>
-      <label htmlFor="githubToken" className="block text-sm font-medium text-gray-300 mb-1">
+      <label htmlFor="githubToken" className="block text-sm font-medium text-gray-300 mb-2">
         Token de Acceso de GitHub (Opcional, pero recomendado)
       </label>
       <div className="relative">
@@ -209,7 +209,7 @@ const GitHubInputFields: React.FC<any> = ({ repoUrl, setRepoUrl, githubToken, se
           value={githubToken}
           onChange={(e) => setGithubToken(e.target.value)}
           autoComplete="off"
-          className="block w-full rounded-md border-gray-600 bg-gray-900/50 pl-10 pr-10 py-2 text-gray-200 placeholder-gray-500 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm"
+          className="block w-full rounded-md border-gray-600 bg-gray-800/50 pl-10 pr-10 py-2 text-gray-200 placeholder-gray-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/50 sm:text-sm"
           placeholder="ghp_..."
           disabled={isLoading}
         />
@@ -231,7 +231,7 @@ const GitHubInputFields: React.FC<any> = ({ repoUrl, setRepoUrl, githubToken, se
 
 const ZipInputField: React.FC<any> = ({ zipFile, setZipFile, isLoading, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, onFileChange }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-300 mb-1">
+    <label className="block text-sm font-medium text-gray-300 mb-2">
       Archivo del Proyecto (.zip)
     </label>
     <div
