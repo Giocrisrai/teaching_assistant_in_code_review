@@ -1,11 +1,12 @@
 // FIX: Implement the EvaluationReport component to display analysis results.
 import React from 'react';
-import type { EvaluationResult, EvaluationItem } from '../types';
+import type { EvaluationResult, EvaluationItem, GradingScale } from '../types';
 import { ScoreDonut } from './ScoreDonut';
 import { RubricItem } from './RubricItem';
 import { FeedbackRenderer } from './FeedbackRenderer';
 import { JsonIcon, DownloadIcon, PencilIcon } from './icons';
 import { generatePdf } from '../utils/pdfGenerator';
+import { calculateChileanGrade } from '../utils/gradingScales';
 
 
 interface EvaluationReportProps {
@@ -18,28 +19,46 @@ export const EvaluationReport: React.FC<EvaluationReportProps> = ({ result, repo
   const [isEditing, setIsEditing] = React.useState<boolean>(false);
   const [editableResult, setEditableResult] = React.useState<EvaluationResult>(result);
   const [isGeneratingPdf, setIsGeneratingPdf] = React.useState<boolean>(false);
+  const [gradingScale, setGradingScale] = React.useState<GradingScale>(60); // Default to 60%
 
   // When the original result prop changes (e.g., a new analysis), reset the editable state.
   // FIX: Use React.useEffect to resolve "Cannot find name 'useEffect'" error.
   React.useEffect(() => {
-    setEditableResult(result);
-    setIsEditing(false); // Also reset editing mode
+    // Recalculate grade with the default scale upon receiving a new result
+    const { newGrade } = recalculateScores(result.report, result.overallScore, 60);
+    setEditableResult({ ...result, finalChileanGrade: newGrade });
+    setGradingScale(60);
+    setIsEditing(false);
   }, [result]);
+  
+  const recalculateScores = (updatedReport: EvaluationItem[], overallScore: number, scale: GradingScale): { newOverall: number; newGrade: number } => {
+      if (updatedReport.length === 0) return { newOverall: 0, newGrade: 1.0 };
+      
+      let newOverall = overallScore;
+      // If the report items are the source of truth, recalculate overall score
+      if (updatedReport.length > 0) {
+        const totalScore = updatedReport.reduce((acc, item) => acc + item.score, 0);
+        newOverall = totalScore / updatedReport.length;
+      }
 
-  const recalculateScores = (updatedReport: EvaluationItem[]): { newOverall: number; newGrade: number } => {
-    if (updatedReport.length === 0) return { newOverall: 0, newGrade: 1.0 };
-    const totalScore = updatedReport.reduce((acc, item) => acc + item.score, 0);
-    const newOverall = totalScore / updatedReport.length;
-    const calculatedGrade = (newOverall / 100) * 6 + 1;
-    const newGrade = Math.floor(Math.min(7.0, Math.max(1.0, calculatedGrade)) * 10) / 10;
-    return { newOverall, newGrade };
+      const newGrade = calculateChileanGrade(newOverall, scale);
+      return { newOverall, newGrade };
   };
+
+  React.useEffect(() => {
+    // Recalculate grade whenever the scale changes
+    const { newGrade } = recalculateScores(editableResult.report, editableResult.overallScore, gradingScale);
+    setEditableResult(prev => ({ ...prev, finalChileanGrade: newGrade }));
+  }, [gradingScale]);
 
   const handleScoreChange = (criterion: string, newScore: number) => {
     const updatedReport = editableResult.report.map(item =>
       item.criterion === criterion ? { ...item, score: newScore } : item
     );
-    const { newOverall, newGrade } = recalculateScores(updatedReport);
+    const totalScore = updatedReport.reduce((acc, item) => acc + item.score, 0);
+    const newOverall = totalScore / updatedReport.length;
+
+    const { newGrade } = recalculateScores(updatedReport, newOverall, gradingScale);
     setEditableResult(prev => ({
       ...prev,
       report: updatedReport,
@@ -126,11 +145,12 @@ export const EvaluationReport: React.FC<EvaluationReportProps> = ({ result, repo
                 </div>
               </div>
 
-            <div className="mt-4 text-lg">
-              <span>Nota Final: </span>
+            <div className="mt-4">
+              <span className="text-lg">Nota Final: </span>
               <span className="font-bold text-2xl text-white">{finalChileanGrade.toFixed(1)}</span>
               <span className="text-gray-400 ml-2">(Puntaje: {overallScore.toFixed(1)} / 100)</span>
             </div>
+             <GradingScaleSelector scale={gradingScale} setScale={setGradingScale} />
           </div>
 
           <div className="flex-shrink-0 self-center sm:self-end">
@@ -189,3 +209,30 @@ export const EvaluationReport: React.FC<EvaluationReportProps> = ({ result, repo
     </div>
   );
 };
+
+const GradingScaleSelector: React.FC<{scale: GradingScale, setScale: (scale: GradingScale) => void}> = ({ scale, setScale }) => {
+  const descriptions = {
+    60: "Con 60% de exigencia, se necesita un puntaje de 60 para obtener la nota 4.0.",
+    50: "Con 50% de exigencia, se necesita un puntaje de 50 para obtener la nota 4.0.",
+    0: "Escala proporcional directa, donde el puntaje 0 es un 1.0 y el 100 es un 7.0."
+  };
+
+  return (
+    <div className="mt-3">
+        <label htmlFor="grading-scale" className="block text-sm font-medium text-gray-400">
+            Escala de Calificación
+        </label>
+        <select
+            id="grading-scale"
+            value={scale}
+            onChange={(e) => setScale(Number(e.target.value) as GradingScale)}
+            className="mt-1 block w-full sm:w-auto pl-3 pr-10 py-1.5 text-base border-gray-600 bg-gray-900/50 text-gray-200 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm rounded-md"
+        >
+            <option value="60">60% de Exigencia</option>
+            <option value="50">50% de Exigencia</option>
+            <option value="0">Proporcional Directa</option>
+        </select>
+        <p className="mt-2 text-xs text-gray-500">{descriptions[scale]}</p>
+    </div>
+  );
+}

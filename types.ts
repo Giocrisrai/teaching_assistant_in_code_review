@@ -1,5 +1,7 @@
 export type AnalysisSource = 'github' | 'zip';
 
+export type GradingScale = 60 | 50 | 0;
+
 export interface GitHubFile {
   path: string;
   content: string;

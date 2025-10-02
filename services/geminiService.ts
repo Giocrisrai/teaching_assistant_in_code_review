@@ -185,7 +185,7 @@ Tu tarea es analizar los **resúmenes** del código de un repositorio y evaluarl
 5.  **Cálculo de Puntajes:**
     -   El 'score' para cada criterio debe estar entre 0 y 100.
     -   El 'overallScore' debe ser el promedio exacto de los 'score' de todos los criterios.
-    -   La 'finalChileanGrade' se calcula como \`((overallScore / 100) * 6) + 1\`, truncado a un decimal.
+    -   La 'finalChileanGrade' se calcula como \`((overallScore / 100) * 6) + 1\`. No la redondees aquí, solo el cálculo directo.
 6.  **Análisis de Profesionalismo:** Presta especial atención a la información sobre reproducibilidad, calidad del código y seguridad mencionada en los resúmenes.
 7.  **Alerta de Seguridad:** Si se proporciona una alerta de seguridad (como la presencia de un archivo \`.env\`), DEBES mencionarla de forma prominente y crítica en el \`professionalismSummary\` y aplicar una penalización severa.
 
@@ -248,14 +248,16 @@ Por favor, evalúa el proyecto basándote en la rúbrica y los resúmenes de los
         throw new Error('La IA devolvió un JSON con formato incorrecto. No se pudo procesar la evaluación.');
     }
     
+    // Post-processing to ensure consistency. The frontend will do the final, authoritative calculation.
     if (result.report && result.report.length > 0) {
       const totalScore = result.report.reduce((acc, item) => acc + item.score, 0);
       const calculatedOverallScore = totalScore / result.report.length;
       result.overallScore = parseFloat(calculatedOverallScore.toFixed(1));
-
+      
+      // Provide a basic proportional grade as a starting point. The UI will immediately recalculate it.
       const calculatedGrade = (result.overallScore / 100) * 6 + 1;
       const clampedGrade = Math.min(7.0, Math.max(1.0, calculatedGrade));
-      result.finalChileanGrade = Math.floor(clampedGrade * 10) / 10;
+      result.finalChileanGrade = Math.round(clampedGrade * 10) / 10;
     }
 
     return result;
