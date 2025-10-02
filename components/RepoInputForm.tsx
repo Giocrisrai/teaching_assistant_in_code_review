@@ -1,6 +1,6 @@
+// FIX: Implement the RepoInputForm component to allow users to input repo details for analysis.
 import React, { useState } from 'react';
-import { DEFAULT_RUBRIC } from '../constants';
-import { KeyIcon, EyeIcon, EyeOffIcon, InfoIcon } from './icons';
+import { GithubIcon, KeyIcon, EyeIcon, EyeOffIcon } from './icons';
 
 interface RepoInputFormProps {
   repoUrl: string;
@@ -30,107 +30,91 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
     onAnalyze();
   };
 
-  const handleRestoreRubric = () => {
-    setRubric(DEFAULT_RUBRIC);
-  };
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-gray-800/50 p-6 rounded-lg border border-gray-700 shadow-lg">
+    <form onSubmit={handleSubmit} className="space-y-6 bg-gray-800/50 p-6 rounded-lg border border-gray-700">
       <div>
-        <label htmlFor="repoUrl" className="block text-sm font-medium text-gray-300 mb-2">
+        <label htmlFor="repoUrl" className="block text-sm font-medium text-gray-300 mb-1">
           URL del Repositorio de GitHub
         </label>
-        <input
-          type="url"
-          id="repoUrl"
-          name="repoUrl"
-          value={repoUrl}
-          onChange={(e) => setRepoUrl(e.target.value)}
-          placeholder="https://github.com/owner/repo"
-          required
-          className="w-full bg-gray-900 border border-gray-600 rounded-md px-3 py-2 text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
-        />
+        <div className="relative">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <GithubIcon className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="url"
+            id="repoUrl"
+            name="repoUrl"
+            value={repoUrl}
+            onChange={(e) => setRepoUrl(e.target.value)}
+            className="block w-full rounded-md border-gray-600 bg-gray-900/50 pl-10 pr-3 py-2 text-gray-200 placeholder-gray-500 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm"
+            placeholder="https://github.com/owner/repo"
+            required
+            disabled={isLoading}
+          />
+        </div>
       </div>
 
       <div>
-         <label htmlFor="githubToken" className="block text-sm font-medium text-gray-300 mb-2">
-          Token de Acceso de GitHub <span className="text-gray-400">(Opcional para repositorios privados)</span>
+        <label htmlFor="githubToken" className="block text-sm font-medium text-gray-300 mb-1">
+          Token de Acceso de GitHub (Opcional)
         </label>
         <div className="relative">
-           <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <KeyIcon className="h-5 w-5 text-gray-500" />
-          </span>
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <KeyIcon className="h-5 w-5 text-gray-400" />
+          </div>
           <input
             type={showToken ? 'text' : 'password'}
             id="githubToken"
             name="githubToken"
             value={githubToken}
             onChange={(e) => setGithubToken(e.target.value)}
+            className="block w-full rounded-md border-gray-600 bg-gray-900/50 pl-10 pr-10 py-2 text-gray-200 placeholder-gray-500 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm"
             placeholder="ghp_..."
-            className="w-full bg-gray-900 border border-gray-600 rounded-md pl-10 pr-10 py-2 text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+            disabled={isLoading}
           />
           <button
             type="button"
+            className="absolute inset-y-0 right-0 flex items-center pr-3"
             onClick={() => setShowToken(!showToken)}
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-300"
             aria-label={showToken ? 'Ocultar token' : 'Mostrar token'}
           >
             {showToken ? (
-              <EyeOffIcon className="h-5 w-5" />
+              <EyeOffIcon className="h-5 w-5 text-gray-400 hover:text-gray-200" />
             ) : (
-              <EyeIcon className="h-5 w-5" />
+              <EyeIcon className="h-5 w-5 text-gray-400 hover:text-gray-200" />
             )}
           </button>
         </div>
-         <div className="mt-2 flex items-start space-x-2 text-xs text-gray-400 p-2 bg-gray-900/50 rounded-md">
-            <InfoIcon className="w-4 h-4 flex-shrink-0 mt-0.5"/>
-            <p>
-                Para analizar un repositorio privado, genera un{' '}
-                <a 
-                    href="https://github.com/settings/tokens?type=beta" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-cyan-400 hover:underline"
-                >
-                    Token de Acceso Personal
-                </a> 
-                {' '}con el permiso de `repo` (lectura completa). El token solo se usa en tu navegador y no se guarda.
-            </p>
-         </div>
+        <p className="mt-2 text-xs text-gray-500">
+          Recomendado para repositorios privados o para evitar límites de la API pública. El token nunca se almacena.
+        </p>
       </div>
 
-
       <div>
-        <div className="flex justify-between items-center mb-2">
-          <label htmlFor="rubric" className="block text-sm font-medium text-gray-300">
-            Rúbrica de Evaluación
-          </label>
-          <button
-            type="button"
-            onClick={handleRestoreRubric}
-            className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
-          >
-            Restaurar por defecto
-          </button>
-        </div>
+        <label htmlFor="rubric" className="block text-sm font-medium text-gray-300 mb-1">
+          Rúbrica de Evaluación
+        </label>
         <textarea
           id="rubric"
           name="rubric"
           rows={10}
           value={rubric}
           onChange={(e) => setRubric(e.target.value)}
+          className="block w-full rounded-md border-gray-600 bg-gray-900/50 py-2 px-3 text-gray-200 placeholder-gray-500 focus:border-cyan-500 focus:ring-cyan-500 sm:text-sm font-mono text-xs"
           required
-          className="w-full bg-gray-900 border border-gray-600 rounded-md px-3 py-2 text-gray-100 font-mono text-xs focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+          disabled={isLoading}
         />
       </div>
 
-      <button
-        type="submit"
-        disabled={isLoading || !repoUrl}
-        className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
-      >
-        {isLoading ? 'Analizando...' : 'Analizar Repositorio'}
-      </button>
+      <div>
+        <button
+          type="submit"
+          disabled={isLoading || !repoUrl.trim()}
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {isLoading ? 'Analizando...' : 'Analizar Repositorio'}
+        </button>
+      </div>
     </form>
   );
 };

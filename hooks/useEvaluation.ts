@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import type { EvaluationResult } from '../types';
-import { getRepoContents } from '../services/githubService';
-import { evaluateRepoWithGemini } from '../services/geminiService';
+import { listRepoFiles, getFilesContent, FILE_LIMIT } from '../services/githubService';
+import { evaluateRepoWithGemini, selectRelevantFilesWithGemini } from '../services/geminiService';
 import { getCriteriaFromRubric } from '../utils/rubricParser';
 
 // FIX: Implement the useEvaluation custom hook to manage the state and logic for the repository analysis process.
@@ -32,21 +32,38 @@ export function useEvaluation() {
       }
       console.log(`Rúbrica validada, ${criteria.length} criterios encontrados.`);
 
-      // Step 2: Fetch repo contents
-      const fetchMessage = githubToken 
-        ? 'Autenticando y obteniendo contenido del repositorio privado...' 
-        : 'Obteniendo contenido del repositorio público...';
-      onProgress(fetchMessage);
+      // Step 2: List repository files
+      const listMessage = githubToken 
+        ? 'Autenticando y listando archivos del repositorio privado...' 
+        : 'Listando archivos del repositorio público...';
+      onProgress(listMessage);
 
-      const { files, repoName: fetchedRepoName, envFileWarning } = await getRepoContents(repoUrl, githubToken);
+      const { files: allFiles, repoName: fetchedRepoName, envFileWarning, defaultBranch, owner } = await listRepoFiles(repoUrl, githubToken);
       setRepoName(fetchedRepoName);
-      console.log(`Se obtuvieron ${files.length} archivos relevantes de '${fetchedRepoName}'.`);
+      console.log(`Se encontraron ${allFiles.length} archivos relevantes en '${fetchedRepoName}'.`);
+      
+      let filesToProcess = allFiles;
 
-      if (files.length === 0) {
-        throw new Error("No se encontraron archivos relevantes para analizar en el repositorio o la ruta especificada.");
+      // Step 3: AI-powered Triage if file count exceeds the limit
+      if (allFiles.length > FILE_LIMIT) {
+        onProgress(`El proyecto es muy grande (${allFiles.length} archivos). Usando IA para seleccionar los más relevantes...`);
+        const allFilePaths = allFiles.map(f => f.path);
+        const selectedPaths = await selectRelevantFilesWithGemini(allFilePaths, rubric);
+        filesToProcess = allFiles.filter(f => selectedPaths.includes(f.path));
+        console.log(`La IA seleccionó ${filesToProcess.length} archivos de ${allFiles.length} para el análisis.`);
+        onProgress(`La IA seleccionó ${filesToProcess.length} archivos clave. Obteniendo su contenido...`);
+      } else {
+        onProgress(`Obteniendo el contenido de ${allFiles.length} archivos...`);
+      }
+
+      if (filesToProcess.length === 0) {
+        throw new Error("No se encontraron o seleccionaron archivos relevantes para analizar en el repositorio o la ruta especificada.");
       }
       
-      // Step 3: Call Gemini API for evaluation
+      // Step 4: Fetch content of the selected files
+      const files = await getFilesContent(owner, fetchedRepoName, defaultBranch, filesToProcess, githubToken);
+
+      // Step 5: Call Gemini API for evaluation
       onProgress(`Preparando el análisis de ${files.length} archivos con el modelo de IA...`);
       const result = await evaluateRepoWithGemini(files, rubric, envFileWarning, onProgress);
       console.log('Evaluación completada:', result);
@@ -59,7 +76,6 @@ export function useEvaluation() {
       let displayError = 'Ocurrió un error desconocido.';
       if (e instanceof Error && e.message) {
         const rawMessage = e.message;
-        // Attempt to parse a structured JSON error from the error details
         const jsonMatch = rawMessage.match(/{\s*"error":[\s\S]*}/);
         
         if (jsonMatch && jsonMatch[0]) {
@@ -78,11 +94,9 @@ export function useEvaluation() {
               displayError = rawMessage;
             }
           } catch (parseErr) {
-            // If parsing fails, just show the raw message from the service
             displayError = rawMessage;
           }
         } else {
-          // If no specific JSON error is found, show the raw message
           displayError = rawMessage;
         }
       }

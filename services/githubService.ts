@@ -1,11 +1,18 @@
 import type { GitHubFile, JupyterNotebook, NotebookCell } from '../types';
 import { base64Decode } from '../utils';
 
+const FILE_LIMIT = 500; // Max number of files to process before triggering AI triage.
+
 const RELEVANT_EXTENSIONS = [
   '.py', '.yml', '.yaml', '.md', '.txt', '.json',
   '.ipynb', '.cfg', '.toml', '.ini', '.js', '.ts', '.html', '.css',
   '.flake8', 'pytest.ini', '.coveragerc'
 ];
+
+interface RepoFile {
+    path: string;
+    sha?: string; // SHA is only available via GitHub API
+}
 
 function parseRepoUrl(url: string): { owner: string; repo: string; branch: string | null; path: string } | null {
   try {
@@ -69,19 +76,13 @@ function parseAndFormatNotebook(rawContent: string): string {
   }
 }
 
-// --- GitHub API Method (for Private Repos) ---
-async function getRepoContentsWithToken(
-  owner: string,
-  repo: string,
-  branch: string | null,
-  path: string,
-  token: string
-): Promise<{ files: GitHubFile[], repoName: string, envFileWarning: string }> {
-  
+async function listFilesWithToken(
+    owner: string, repo: string, path: string, token: string, branchFromUrl: string | null
+): Promise<{ files: RepoFile[], repoName: string, envFileWarning: string, defaultBranch: string }> {
     const headers = { Authorization: `token ${token}` };
+    let branchToUse = branchFromUrl;
 
-    // 1. Determine the default branch if not specified
-    if (!branch) {
+    if (!branchToUse) {
         const repoDetailsUrl = `https://api.github.com/repos/${owner}/${repo}`;
         const repoDetailsResponse = await fetch(repoDetailsUrl, { headers });
         if (!repoDetailsResponse.ok) {
@@ -89,107 +90,82 @@ async function getRepoContentsWithToken(
             throw new Error(`Error al obtener detalles del repo (Estado: ${repoDetailsResponse.status}). Asegúrate de que el token tenga permisos de 'repo'.`);
         }
         const repoDetails = await repoDetailsResponse.json();
-        branch = repoDetails.default_branch;
+        branchToUse = repoDetails.default_branch;
     }
 
-    // 2. Get the commit SHA for the branch to find the root tree
-    const branchDetailsUrl = `https://api.github.com/repos/${owner}/${repo}/branches/${branch}`;
-    const branchResponse = await fetch(branchDetailsUrl, { headers });
-    if (!branchResponse.ok) throw new Error(`No se pudo encontrar la rama '${branch}' (Estado: ${branchResponse.status}).`);
-    const branchData = await branchResponse.json();
-    const treeSha = branchData.commit.commit.tree.sha;
-
-    // 3. Fetch the entire file tree recursively
-    const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`;
+    const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branchToUse}?recursive=1`;
     const treeResponse = await fetch(treeUrl, { headers });
-    if (!treeResponse.ok) throw new Error("No se pudo obtener el árbol de archivos del repositorio.");
+    if (!treeResponse.ok) {
+        throw new Error(`No se pudo obtener el árbol de archivos del repositorio para la rama '${branchToUse}'. Verifica que la rama exista y que el token tenga acceso.`);
+    }
     const treeData = await treeResponse.json();
 
     const allFiles = treeData.tree as { path: string, type: string, sha: string }[];
     let envFileWarning = '';
     
-    if (allFiles.some(file => file.path === '.env')) {
+    if (allFiles.some(file => file.path.endsWith('/.env') || file.path === '.env')) {
         envFileWarning = "\n--- ALERTA DE SEGURIDAD CRÍTICA ---\nSe detectó un archivo `.env` en el repositorio. Este es un anti-patrón de seguridad grave, ya que expone secretos. Este hecho debe ser mencionado en el feedback y penalizado severamente en la categoría de 'Buenas Prácticas'.\n---------------------------------\n";
     }
 
-    // 4. Filter files based on path and extension
     let relevantFiles = allFiles.filter(item => item.type === 'blob');
     if (path) {
         relevantFiles = relevantFiles.filter(item => item.path.startsWith(path + '/') || item.path === path);
     }
     
-    const filesToFetch = relevantFiles.filter(file => 
-        RELEVANT_EXTENSIONS.some(ext => file.path.endsWith(ext))
-    );
-
-    if (filesToFetch.length === 0) {
-      const pathMsg = path ? ` en la ruta especificada ('${path}')` : '';
-      throw new Error(`No se encontraron archivos relevantes (.py, .yml, .md, etc.)${pathMsg}. El directorio podría estar vacío o contener tipos de archivo no soportados.`);
-    }
-
-    // 5. Fetch content for each file
-    const filePromises = filesToFetch.map(async (file): Promise<GitHubFile | null> => {
-        const blobUrl = `https://api.github.com/repos/${owner}/${repo}/git/blobs/${file.sha}`;
-        try {
-            const contentResponse = await fetch(blobUrl, { headers });
-            if (!contentResponse.ok) throw new Error(`Estado ${contentResponse.status}`);
-            
-            const blobData = await contentResponse.json();
-            const rawContent = base64Decode(blobData.content);
-            
-            let processedContent = rawContent;
-            if (file.path.endsWith('.ipynb')) {
-              processedContent = parseAndFormatNotebook(rawContent);
-            }
-            return { path: file.path, content: processedContent };
-        } catch (error: any) {
-            console.warn(`No se pudo obtener el contenido de ${file.path} desde la API de GitHub, se omitirá. Error: ${error.message}`);
-            return null;
-        }
-    });
-
-    const files = (await Promise.all(filePromises)).filter((f): f is GitHubFile => f !== null);
-    return { files, repoName: repo, envFileWarning };
+    const filesToList = relevantFiles
+        .filter(file => RELEVANT_EXTENSIONS.some(ext => file.path.endsWith(ext)))
+        .map(file => ({ path: file.path, sha: file.sha }));
+    
+    return { files: filesToList, repoName: repo, envFileWarning, defaultBranch: branchToUse! };
 }
 
-// --- jsDelivr Method (for Public Repos) ---
-async function getRepoContentsWithJsDelivr(
-  owner: string,
-  repo: string,
-  branch: string | null,
-  path: string
-): Promise<{ files: GitHubFile[], repoName: string, envFileWarning: string }> {
-    let ref = branch;
+async function listFilesWithJsDelivr(
+    owner: string, repo: string, path: string, branchFromUrl: string | null
+): Promise<{ files: RepoFile[], repoName: string, envFileWarning: string, defaultBranch: string }> {
+    let ref: string | undefined;
     let listData;
+    let discoveredDefaultBranch: string | null = null;
 
-    if (!ref) {
-        const candidateBranches = ['main', 'master'];
-        for (const candidate of candidateBranches) {
-            const listUrl = `https://data.jsdelivr.com/v1/package/gh/${owner}/${repo}@${candidate}/flat`;
-            try {
-                const listResponse = await fetch(listUrl);
-                if (listResponse.ok) {
-                    ref = candidate;
-                    listData = await listResponse.json();
-                    break; 
-                }
-            } catch (e) { /* continue */ }
-        }
-        if (!ref) {
-            throw new Error(`No se pudo determinar la rama por defecto ('main' o 'master'). Si usa otra, especifícala en la URL.`);
+    // If no branch is specified in the URL, try to discover the default branch via GitHub API (unauthenticated)
+    if (!branchFromUrl) {
+        try {
+            const repoDetailsUrl = `https://api.github.com/repos/${owner}/${repo}`;
+            const repoDetailsResponse = await fetch(repoDetailsUrl);
+            if (repoDetailsResponse.ok) {
+                const repoDetails = await repoDetailsResponse.json();
+                discoveredDefaultBranch = repoDetails.default_branch;
+            }
+        } catch (e) {
+            console.warn("No se pudo obtener la rama por defecto de la API de GitHub, se usarán nombres comunes.", e);
         }
     }
+    
+    // Build the list of candidate branches to try, prioritizing URL, then discovered, then common fallbacks.
+    const candidates = [];
+    if (branchFromUrl) candidates.push(branchFromUrl);
+    if (discoveredDefaultBranch) candidates.push(discoveredDefaultBranch);
+    candidates.push('main', 'master');
+    const candidateBranches = [...new Set(candidates)]; // Ensure unique branches
 
-    if (!listData) {
-        const listUrl = `https://data.jsdelivr.com/v1/package/gh/${owner}/${repo}@${ref}/flat`;
-        const listResponse = await fetch(listUrl);
-        if (!listResponse.ok) {
-            if (listResponse.status === 404) throw new Error("Repositorio público no encontrado o rama incorrecta. Para repositorios privados, por favor, proporciona un Token de Acceso Personal.");
-            throw new Error(`No se pudo obtener la lista de archivos (Estado: ${listResponse.status}).`);
-        }
-        listData = await listResponse.json();
+    for (const candidate of candidateBranches) {
+        const listUrl = `https://data.jsdelivr.com/v1/package/gh/${owner}/${repo}@${candidate}/flat`;
+        try {
+            const listResponse = await fetch(listUrl);
+            if (listResponse.ok) {
+                ref = candidate;
+                listData = await listResponse.json();
+                break; 
+            }
+            if (listResponse.status === 403) {
+                 throw new Error("Se ha alcanzado el límite de solicitudes a la API pública (Error 403). Por favor, proporciona un Token de Acceso de GitHub para un análisis más robusto y evitar este límite.");
+            }
+        } catch (e) { /* continue to next candidate */ }
     }
-  
+    
+    if (!ref || !listData) {
+        throw new Error(`No se pudo encontrar una rama válida. Se intentó con: '${candidateBranches.join("', '")}'. Si el repositorio usa una rama diferente, por favor, especifícala en la URL.`);
+    }
+
     const allFiles = listData.files as { name: string }[];
     let envFileWarning = '';
 
@@ -203,49 +179,62 @@ async function getRepoContentsWithJsDelivr(
       relevantFiles = allFiles.filter(item => item.name.startsWith(normalizedPath + '/') || item.name === normalizedPath);
     }
     
-    const filesToFetch = relevantFiles
+    const filesToList = relevantFiles
       .map(file => ({ path: file.name.substring(1) }))
       .filter(file => RELEVANT_EXTENSIONS.some(ext => file.path.endsWith(ext)));
 
-    if (filesToFetch.length === 0) {
-      const pathMsg = path ? ` en la ruta especificada ('${path}')` : '';
-      throw new Error(`No se encontraron archivos relevantes (.py, .yml, .md, etc.)${pathMsg}. El directorio podría estar vacío o contener tipos de archivo no soportados.`);
-    }
+    return { files: filesToList, repoName: repo, envFileWarning, defaultBranch: ref };
+}
 
-    const filePromises = filesToFetch.map(async (file): Promise<GitHubFile> => {
-      const contentUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${ref}/${file.path}`;
-      try {
-          const contentResponse = await fetch(contentUrl);
-          if (!contentResponse.ok) throw new Error(`Estado ${contentResponse.status}`);
-          const rawContent = await contentResponse.text();
-          let processedContent = rawContent;
-          if (file.path.endsWith('.ipynb')) {
-            processedContent = parseAndFormatNotebook(rawContent);
-          }
-          return { path: file.path, content: processedContent };
-      } catch (error: any) {
-          console.warn(`No se pudo obtener el contenido de ${file.path} desde jsDelivr, se omitirá. Error: ${error.message}`);
-          return { path: file.path, content: `Error: No se pudo obtener el contenido. (${error.message})` };
-      }
+export async function listRepoFiles(repoUrl: string, githubToken?: string): Promise<{ files: RepoFile[], repoName: string, envFileWarning: string, defaultBranch: string, owner: string }> {
+    const repoInfo = parseRepoUrl(repoUrl);
+    if (!repoInfo) {
+        throw new Error('URL de repositorio de GitHub inválida. Por favor, usa un formato válido como https://github.com/owner/repo.');
+    }
+    const { owner, repo, path, branch } = repoInfo;
+
+    const listResult = githubToken
+        ? await listFilesWithToken(owner, repo, path, githubToken, branch)
+        : await listFilesWithJsDelivr(owner, repo, path, branch);
+
+    return { ...listResult, owner };
+}
+
+export async function getFilesContent(
+    owner: string,
+    repo: string,
+    branch: string,
+    filesToFetch: RepoFile[],
+    token?: string
+): Promise<GitHubFile[]> {
+    const filePromises = filesToFetch.map(async (file): Promise<GitHubFile | null> => {
+        try {
+            let rawContent: string;
+            if (token && file.sha) { // Use GitHub API
+                const blobUrl = `https://api.github.com/repos/${owner}/${repo}/git/blobs/${file.sha}`;
+                const contentResponse = await fetch(blobUrl, { headers: { Authorization: `token ${token}` } });
+                if (!contentResponse.ok) throw new Error(`Estado ${contentResponse.status}`);
+                const blobData = await contentResponse.json();
+                rawContent = base64Decode(blobData.content);
+            } else { // Use jsDelivr
+                const contentUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${file.path}`;
+                const contentResponse = await fetch(contentUrl);
+                if (!contentResponse.ok) throw new Error(`Estado ${contentResponse.status}`);
+                rawContent = await contentResponse.text();
+            }
+            
+            let processedContent = rawContent;
+            if (file.path.endsWith('.ipynb')) {
+              processedContent = parseAndFormatNotebook(rawContent);
+            }
+            return { path: file.path, content: processedContent };
+        } catch (error: any) {
+            console.warn(`No se pudo obtener el contenido de ${file.path}, se omitirá. Error: ${error.message}`);
+            return null;
+        }
     });
 
-    const files = (await Promise.all(filePromises)).filter(f => !f.content.startsWith('Error:'));
-    return { files, repoName: repo, envFileWarning };
+    return (await Promise.all(filePromises)).filter((f): f is GitHubFile => f !== null);
 }
 
-
-export async function getRepoContents(repoUrl: string, githubToken?: string): Promise<{ files: GitHubFile[], repoName: string, envFileWarning: string }> {
-  const repoInfo = parseRepoUrl(repoUrl);
-
-  if (!repoInfo) {
-    throw new Error('URL de repositorio de GitHub inválida. Por favor, usa un formato válido como https://github.com/owner/repo.');
-  }
-
-  const { owner, repo, branch, path } = repoInfo;
-
-  if (githubToken) {
-    return getRepoContentsWithToken(owner, repo, branch, path, githubToken);
-  } else {
-    return getRepoContentsWithJsDelivr(owner, repo, branch, path);
-  }
-}
+export { FILE_LIMIT };

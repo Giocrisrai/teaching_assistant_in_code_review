@@ -1,11 +1,83 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import type { GitHubFile, EvaluationResult } from '../types';
 
 // Per instructions, initialize the client with the API key from environment variables.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 // Set a character limit for each chunk to avoid oversized prompts that can cause 500 errors.
-const CHUNK_SIZE_LIMIT = 150000; 
+const CHUNK_SIZE_LIMIT = 150000;
+const TRIAGE_FILE_LIMIT = 200; // Max files for AI to select in triage phase.
+
+
+/**
+ * Given a large list of file paths, asks the Gemini API to select the most relevant ones for analysis.
+ * This is a triage step to handle exceptionally large repositories.
+ * @param filePaths - An array of all file paths in the repo.
+ * @param rubric - The evaluation rubric to give context to the AI.
+ * @returns A promise that resolves to an array of the most relevant file paths.
+ */
+export async function selectRelevantFilesWithGemini(filePaths: string[], rubric: string): Promise<string[]> {
+    const prompt = `Eres un arquitecto de software experto y asistente de profesor. Tu tarea es analizar la siguiente lista de rutas de archivo de un repositorio de GitHub y seleccionar las más importantes para realizar una evaluación de código.
+
+**Contexto:** El repositorio es demasiado grande para analizarlo por completo. Debes identificar un subconjunto de archivos que represente mejor la arquitectura, la lógica de negocio principal y la calidad general del proyecto, basándote en la rúbrica de evaluación que se te proporcionará.
+
+**Instrucciones:**
+1.  **Analiza la Rúbrica:** Lee la rúbrica para entender qué aspectos son los más importantes (ej. estructura del proyecto, pipelines de datos, configuración, etc.).
+2.  **Prioriza Archivos Clave:** Da prioridad a archivos de configuración (como \`pyproject.toml\`, \`catalog.yml\`), archivos de definición de pipelines, código fuente principal (en \`src/\`), y notebooks de análisis importantes.
+3.  **Descarta Archivos Secundarios:** Generalmente, puedes ignorar archivos de tests masivos, archivos de configuración de linters, \`.gitignore\`, o documentación genérica si necesitas reducir el número.
+4.  **Sé Estratégico:** Elige una muestra representativa que permita una evaluación justa.
+5.  **Límite Estricto:** Debes seleccionar un máximo de ${TRIAGE_FILE_LIMIT} archivos.
+6.  **Formato de Salida:** Tu respuesta DEBE ser un objeto JSON que contenga una única clave "selected_files", cuyo valor sea un array de strings con las rutas de los archivos seleccionados.
+
+**Rúbrica de Evaluación:**
+---
+${rubric}
+---
+
+**Lista Completa de Archivos:**
+---
+${JSON.stringify(filePaths, null, 2)}
+---
+
+Ahora, selecciona los archivos más críticos y devuelve el resultado en el formato JSON especificado.`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                temperature: 0.1,
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        selected_files: {
+                            type: Type.ARRAY,
+                            items: { type: Type.STRING }
+                        }
+                    },
+                    required: ["selected_files"]
+                }
+            },
+        });
+
+        const rawText = response.text.trim();
+        const result = JSON.parse(rawText);
+        
+        if (result && result.selected_files && Array.isArray(result.selected_files)) {
+            return result.selected_files;
+        } else {
+            console.error("La respuesta de triaje de la IA no tenía el formato esperado:", result);
+            // Fallback: return the first N files if triage fails
+            return filePaths.slice(0, TRIAGE_FILE_LIMIT);
+        }
+    } catch (error) {
+        console.error('Error durante el triaje de archivos con la IA:', error);
+        // Fallback on error
+        return filePaths.slice(0, TRIAGE_FILE_LIMIT);
+    }
+}
+
 
 /**
  * Summarizes a chunk of code files by calling the Gemini API.
