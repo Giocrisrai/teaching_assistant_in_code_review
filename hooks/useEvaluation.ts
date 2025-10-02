@@ -1,10 +1,9 @@
 import { useState, useCallback } from 'react';
-import type { EvaluationResult } from '../types';
+import type { EvaluationResult, AnalysisInput, GitHubFile } from '../types';
 import { listRepoFiles, getFilesContent, FILE_LIMIT } from '../services/githubService';
+import { extractFilesFromZip } from '../services/zipService';
 import { evaluateRepoWithGemini, selectRelevantFilesWithGemini } from '../services/geminiService';
 import { getCriteriaFromRubric } from '../utils/rubricParser';
-
-// FIX: Implement the useEvaluation custom hook to manage the state and logic for the repository analysis process.
 
 export function useEvaluation() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -13,7 +12,7 @@ export function useEvaluation() {
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [repoName, setRepoName] = useState<string>('');
 
-  const analyzeRepo = useCallback(async (repoUrl: string, rubric: string, githubToken: string) => {
+  const analyzeRepo = useCallback(async (input: AnalysisInput) => {
     setIsLoading(true);
     setError(null);
     setEvaluationResult(null);
@@ -26,46 +25,59 @@ export function useEvaluation() {
     try {
       // Step 1: Validate Rubric
       onProgress('Validando la rúbrica...');
-      const criteria = getCriteriaFromRubric(rubric);
+      const criteria = getCriteriaFromRubric(input.rubric);
       if (criteria.length === 0) {
         throw new Error("La rúbrica proporcionada no tiene un formato válido o no contiene criterios. Asegúrate de que cada criterio comience con '## X. ...'.");
       }
-      console.log(`Rúbrica validada, ${criteria.length} criterios encontrados.`);
 
-      // Step 2: List repository files
-      const listMessage = githubToken 
-        ? 'Autenticando y listando archivos del repositorio privado...' 
-        : 'Listando archivos del repositorio público...';
-      onProgress(listMessage);
+      let allFiles: GitHubFile[];
+      let fetchedRepoName: string;
+      let envFileWarning: string;
+      
+      // Step 2: Fetch files from the selected source
+      if (input.source === 'github') {
+        const listMessage = input.githubToken 
+          ? 'Autenticando y listando archivos del repositorio privado...' 
+          : 'Listando archivos del repositorio público...';
+        onProgress(listMessage);
+        
+        const { files: listedFiles, repoName, envFileWarning: warning, defaultBranch, owner } = await listRepoFiles(input.repoUrl, input.githubToken);
+        fetchedRepoName = repoName;
+        envFileWarning = warning;
 
-      const { files: allFiles, repoName: fetchedRepoName, envFileWarning, defaultBranch, owner } = await listRepoFiles(repoUrl, githubToken);
+        onProgress(`Obteniendo el contenido de ${listedFiles.length} archivos...`);
+        allFiles = await getFilesContent(owner, repoName, defaultBranch, listedFiles, input.githubToken);
+
+      } else { // source is 'zip'
+        onProgress(`Descomprimiendo y leyendo el archivo ${input.zipFile.name}...`);
+        const { files, repoName: name, envFileWarning: warning } = await extractFilesFromZip(input.zipFile);
+        allFiles = files;
+        fetchedRepoName = name;
+        envFileWarning = warning;
+      }
+      
       setRepoName(fetchedRepoName);
       console.log(`Se encontraron ${allFiles.length} archivos relevantes en '${fetchedRepoName}'.`);
-      
+
       let filesToProcess = allFiles;
 
       // Step 3: AI-powered Triage if file count exceeds the limit
       if (allFiles.length > FILE_LIMIT) {
         onProgress(`El proyecto es muy grande (${allFiles.length} archivos). Usando IA para seleccionar los más relevantes...`);
         const allFilePaths = allFiles.map(f => f.path);
-        const selectedPaths = await selectRelevantFilesWithGemini(allFilePaths, rubric);
+        const selectedPaths = await selectRelevantFilesWithGemini(allFilePaths, input.rubric);
         filesToProcess = allFiles.filter(f => selectedPaths.includes(f.path));
         console.log(`La IA seleccionó ${filesToProcess.length} archivos de ${allFiles.length} para el análisis.`);
-        onProgress(`La IA seleccionó ${filesToProcess.length} archivos clave. Obteniendo su contenido...`);
-      } else {
-        onProgress(`Obteniendo el contenido de ${allFiles.length} archivos...`);
+        onProgress(`La IA seleccionó ${filesToProcess.length} archivos clave. Preparando el análisis...`);
       }
 
       if (filesToProcess.length === 0) {
-        throw new Error("No se encontraron o seleccionaron archivos relevantes para analizar en el repositorio o la ruta especificada.");
+        throw new Error("No se encontraron o seleccionaron archivos relevantes para analizar.");
       }
       
-      // Step 4: Fetch content of the selected files
-      const files = await getFilesContent(owner, fetchedRepoName, defaultBranch, filesToProcess, githubToken);
-
-      // Step 5: Call Gemini API for evaluation
-      onProgress(`Preparando el análisis de ${files.length} archivos con el modelo de IA...`);
-      const result = await evaluateRepoWithGemini(files, rubric, envFileWarning, onProgress);
+      // Step 4: Call Gemini API for evaluation
+      onProgress(`Preparando el análisis de ${filesToProcess.length} archivos con el modelo de IA...`);
+      const result = await evaluateRepoWithGemini(filesToProcess, input.rubric, envFileWarning, onProgress);
       console.log('Evaluación completada:', result);
 
       // Final Step: Set result

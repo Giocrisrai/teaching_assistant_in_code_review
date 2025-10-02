@@ -1,13 +1,8 @@
 import type { GitHubFile, JupyterNotebook, NotebookCell } from '../types';
 import { base64Decode } from '../utils';
+import { RELEVANT_EXTENSIONS } from '../constants';
 
 const FILE_LIMIT = 500; // Max number of files to process before triggering AI triage.
-
-const RELEVANT_EXTENSIONS = [
-  '.py', '.yml', '.yaml', '.md', '.txt', '.json',
-  '.ipynb', '.cfg', '.toml', '.ini', '.js', '.ts', '.html', '.css',
-  '.flake8', 'pytest.ini', '.coveragerc'
-];
 
 interface RepoFile {
     path: string;

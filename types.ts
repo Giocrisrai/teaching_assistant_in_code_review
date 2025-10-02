@@ -1,4 +1,5 @@
-// FIX: Define interfaces for the application's data structures.
+export type AnalysisSource = 'github' | 'zip';
+
 export interface GitHubFile {
   path: string;
   content: string;
@@ -27,3 +28,9 @@ export interface NotebookCell {
 export interface JupyterNotebook {
   cells: NotebookCell[];
 }
+
+// Input for the main analysis hook
+export type AnalysisInput = { rubric: string; } & (
+  | { source: 'github'; repoUrl: string; githubToken: string; }
+  | { source: 'zip'; zipFile: File; }
+);

@@ -7,11 +7,13 @@ import { RepoInputForm } from './components/RepoInputForm';
 import { Loader } from './components/Loader';
 import { EvaluationReport } from './components/EvaluationReport';
 import { InfoIcon } from './components/icons';
+import type { AnalysisSource } from './types';
 
-// FIX: Implement the main App component to structure the application UI and manage state.
 function App() {
+  const [analysisSource, setAnalysisSource] = useState<AnalysisSource>('github');
   const [repoUrl, setRepoUrl] = useState<string>('');
   const [githubToken, setGithubToken] = useState<string>('');
+  const [zipFile, setZipFile] = useState<File | null>(null);
   const [rubric, setRubric] = useState<string>(DEFAULT_RUBRIC);
 
   const {
@@ -24,8 +26,10 @@ function App() {
   } = useEvaluation();
 
   const handleAnalyze = () => {
-    if (repoUrl && rubric) {
-      analyzeRepo(repoUrl, rubric, githubToken);
+    if (analysisSource === 'github' && repoUrl && rubric) {
+      analyzeRepo({ source: 'github', repoUrl, rubric, githubToken });
+    } else if (analysisSource === 'zip' && zipFile && rubric) {
+      analyzeRepo({ source: 'zip', zipFile, rubric });
     }
   };
 
@@ -34,10 +38,14 @@ function App() {
       <Header />
       <main className="container mx-auto p-4 md:p-6 lg:p-8 max-w-4xl">
         <RepoInputForm
+          analysisSource={analysisSource}
+          setAnalysisSource={setAnalysisSource}
           repoUrl={repoUrl}
           setRepoUrl={setRepoUrl}
           githubToken={githubToken}
           setGithubToken={setGithubToken}
+          zipFile={zipFile}
+          setZipFile={setZipFile}
           rubric={rubric}
           setRubric={setRubric}
           onAnalyze={handleAnalyze}

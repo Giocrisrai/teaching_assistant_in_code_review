@@ -147,3 +147,44 @@ export const EyeOffIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
         <line x1="2" x2="22" y1="2" y2="22"/>
     </svg>
 );
+
+export const UploadIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="24" 
+    height="24" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="17 8 12 3 7 8"/>
+    <line x1="12" y1="3" x2="12" y2="15"/>
+  </svg>
+);
+
+export const ZipIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="24" 
+    height="24" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    {...props}
+  >
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <path d="M10 15V10a2 2 0 1 1 4 0v5" />
+    <path d="M10 9h4" />
+    <path d="M21 9.5V8a2 2 0 0 0-2-2h-3" />
+    <path d="M3 6a2 2 0 0 1 2-2h3" />
+    <path d="M3 9.5V8" />
+  </svg>
+);

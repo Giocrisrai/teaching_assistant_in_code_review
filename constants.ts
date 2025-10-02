@@ -1,5 +1,9 @@
-// FIX: The original file was plain text, not a valid TypeScript module.
-// This wraps the rubric text in a template string and exports it as a constant.
+export const RELEVANT_EXTENSIONS = [
+  '.py', '.yml', '.yaml', '.md', '.txt', '.json',
+  '.ipynb', '.cfg', '.toml', '.ini', '.js', '.ts', '.html', '.css',
+  '.flake8', 'pytest.ini', '.coveragerc'
+];
+
 export const DEFAULT_RUBRIC = `# Rúbrica de Evaluación: Proyecto Machine Learning con Kedro (Nivel Universitario - 3er Año)
 
 ## 1. Estructura y Configuración del Proyecto Kedro (10%)
