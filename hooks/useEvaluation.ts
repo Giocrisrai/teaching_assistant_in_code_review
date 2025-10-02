@@ -13,7 +13,7 @@ export function useEvaluation() {
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [repoName, setRepoName] = useState<string>('');
 
-  const analyzeRepo = useCallback(async (repoUrl: string, rubric: string) => {
+  const analyzeRepo = useCallback(async (repoUrl: string, rubric: string, githubToken: string) => {
     setIsLoading(true);
     setError(null);
     setEvaluationResult(null);
@@ -33,8 +33,12 @@ export function useEvaluation() {
       console.log(`Rúbrica validada, ${criteria.length} criterios encontrados.`);
 
       // Step 2: Fetch repo contents
-      onProgress('Obteniendo contenido del repositorio desde GitHub...');
-      const { files, repoName: fetchedRepoName, envFileWarning } = await getRepoContents(repoUrl);
+      const fetchMessage = githubToken 
+        ? 'Autenticando y obteniendo contenido del repositorio privado...' 
+        : 'Obteniendo contenido del repositorio público...';
+      onProgress(fetchMessage);
+
+      const { files, repoName: fetchedRepoName, envFileWarning } = await getRepoContents(repoUrl, githubToken);
       setRepoName(fetchedRepoName);
       console.log(`Se obtuvieron ${files.length} archivos relevantes de '${fetchedRepoName}'.`);
 

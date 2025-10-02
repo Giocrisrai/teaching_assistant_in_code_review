@@ -1,4 +1,5 @@
 import type { GitHubFile, JupyterNotebook, NotebookCell } from '../types';
+import { base64Decode } from '../utils';
 
 const RELEVANT_EXTENSIONS = [
   '.py', '.yml', '.yaml', '.md', '.txt', '.json',
@@ -68,105 +69,183 @@ function parseAndFormatNotebook(rawContent: string): string {
   }
 }
 
-export async function getRepoContents(repoUrl: string): Promise<{ files: GitHubFile[], repoName: string, envFileWarning: string }> {
+// --- GitHub API Method (for Private Repos) ---
+async function getRepoContentsWithToken(
+  owner: string,
+  repo: string,
+  branch: string | null,
+  path: string,
+  token: string
+): Promise<{ files: GitHubFile[], repoName: string, envFileWarning: string }> {
+  
+    const headers = { Authorization: `token ${token}` };
+
+    // 1. Determine the default branch if not specified
+    if (!branch) {
+        const repoDetailsUrl = `https://api.github.com/repos/${owner}/${repo}`;
+        const repoDetailsResponse = await fetch(repoDetailsUrl, { headers });
+        if (!repoDetailsResponse.ok) {
+            if (repoDetailsResponse.status === 404) throw new Error("Repositorio no encontrado. Verifica la URL o los permisos del token.");
+            throw new Error(`Error al obtener detalles del repo (Estado: ${repoDetailsResponse.status}). Asegúrate de que el token tenga permisos de 'repo'.`);
+        }
+        const repoDetails = await repoDetailsResponse.json();
+        branch = repoDetails.default_branch;
+    }
+
+    // 2. Get the commit SHA for the branch to find the root tree
+    const branchDetailsUrl = `https://api.github.com/repos/${owner}/${repo}/branches/${branch}`;
+    const branchResponse = await fetch(branchDetailsUrl, { headers });
+    if (!branchResponse.ok) throw new Error(`No se pudo encontrar la rama '${branch}' (Estado: ${branchResponse.status}).`);
+    const branchData = await branchResponse.json();
+    const treeSha = branchData.commit.commit.tree.sha;
+
+    // 3. Fetch the entire file tree recursively
+    const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`;
+    const treeResponse = await fetch(treeUrl, { headers });
+    if (!treeResponse.ok) throw new Error("No se pudo obtener el árbol de archivos del repositorio.");
+    const treeData = await treeResponse.json();
+
+    const allFiles = treeData.tree as { path: string, type: string, sha: string }[];
+    let envFileWarning = '';
+    
+    if (allFiles.some(file => file.path === '.env')) {
+        envFileWarning = "\n--- ALERTA DE SEGURIDAD CRÍTICA ---\nSe detectó un archivo `.env` en el repositorio. Este es un anti-patrón de seguridad grave, ya que expone secretos. Este hecho debe ser mencionado en el feedback y penalizado severamente en la categoría de 'Buenas Prácticas'.\n---------------------------------\n";
+    }
+
+    // 4. Filter files based on path and extension
+    let relevantFiles = allFiles.filter(item => item.type === 'blob');
+    if (path) {
+        relevantFiles = relevantFiles.filter(item => item.path.startsWith(path + '/') || item.path === path);
+    }
+    
+    const filesToFetch = relevantFiles.filter(file => 
+        RELEVANT_EXTENSIONS.some(ext => file.path.endsWith(ext))
+    );
+
+    if (filesToFetch.length === 0) {
+      const pathMsg = path ? ` en la ruta especificada ('${path}')` : '';
+      throw new Error(`No se encontraron archivos relevantes (.py, .yml, .md, etc.)${pathMsg}. El directorio podría estar vacío o contener tipos de archivo no soportados.`);
+    }
+
+    // 5. Fetch content for each file
+    const filePromises = filesToFetch.map(async (file): Promise<GitHubFile | null> => {
+        const blobUrl = `https://api.github.com/repos/${owner}/${repo}/git/blobs/${file.sha}`;
+        try {
+            const contentResponse = await fetch(blobUrl, { headers });
+            if (!contentResponse.ok) throw new Error(`Estado ${contentResponse.status}`);
+            
+            const blobData = await contentResponse.json();
+            const rawContent = base64Decode(blobData.content);
+            
+            let processedContent = rawContent;
+            if (file.path.endsWith('.ipynb')) {
+              processedContent = parseAndFormatNotebook(rawContent);
+            }
+            return { path: file.path, content: processedContent };
+        } catch (error: any) {
+            console.warn(`No se pudo obtener el contenido de ${file.path} desde la API de GitHub, se omitirá. Error: ${error.message}`);
+            return null;
+        }
+    });
+
+    const files = (await Promise.all(filePromises)).filter((f): f is GitHubFile => f !== null);
+    return { files, repoName: repo, envFileWarning };
+}
+
+// --- jsDelivr Method (for Public Repos) ---
+async function getRepoContentsWithJsDelivr(
+  owner: string,
+  repo: string,
+  branch: string | null,
+  path: string
+): Promise<{ files: GitHubFile[], repoName: string, envFileWarning: string }> {
+    let ref = branch;
+    let listData;
+
+    if (!ref) {
+        const candidateBranches = ['main', 'master'];
+        for (const candidate of candidateBranches) {
+            const listUrl = `https://data.jsdelivr.com/v1/package/gh/${owner}/${repo}@${candidate}/flat`;
+            try {
+                const listResponse = await fetch(listUrl);
+                if (listResponse.ok) {
+                    ref = candidate;
+                    listData = await listResponse.json();
+                    break; 
+                }
+            } catch (e) { /* continue */ }
+        }
+        if (!ref) {
+            throw new Error(`No se pudo determinar la rama por defecto ('main' o 'master'). Si usa otra, especifícala en la URL.`);
+        }
+    }
+
+    if (!listData) {
+        const listUrl = `https://data.jsdelivr.com/v1/package/gh/${owner}/${repo}@${ref}/flat`;
+        const listResponse = await fetch(listUrl);
+        if (!listResponse.ok) {
+            if (listResponse.status === 404) throw new Error("Repositorio público no encontrado o rama incorrecta. Para repositorios privados, por favor, proporciona un Token de Acceso Personal.");
+            throw new Error(`No se pudo obtener la lista de archivos (Estado: ${listResponse.status}).`);
+        }
+        listData = await listResponse.json();
+    }
+  
+    const allFiles = listData.files as { name: string }[];
+    let envFileWarning = '';
+
+    if (allFiles.some(file => file.name === '/.env')) {
+      envFileWarning = "\n--- ALERTA DE SEGURIDAD CRÍTICA ---\nSe detectó un archivo `.env` en la raíz del repositorio. Este es un anti-patrón de seguridad grave, ya que expone secretos. Este hecho debe ser mencionado en el feedback y penalizado severamente en la categoría de 'Buenas Prácticas'.\n---------------------------------\n";
+    }
+
+    let relevantFiles = allFiles;
+    if (path) {
+      const normalizedPath = `/${path}`;
+      relevantFiles = allFiles.filter(item => item.name.startsWith(normalizedPath + '/') || item.name === normalizedPath);
+    }
+    
+    const filesToFetch = relevantFiles
+      .map(file => ({ path: file.name.substring(1) }))
+      .filter(file => RELEVANT_EXTENSIONS.some(ext => file.path.endsWith(ext)));
+
+    if (filesToFetch.length === 0) {
+      const pathMsg = path ? ` en la ruta especificada ('${path}')` : '';
+      throw new Error(`No se encontraron archivos relevantes (.py, .yml, .md, etc.)${pathMsg}. El directorio podría estar vacío o contener tipos de archivo no soportados.`);
+    }
+
+    const filePromises = filesToFetch.map(async (file): Promise<GitHubFile> => {
+      const contentUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${ref}/${file.path}`;
+      try {
+          const contentResponse = await fetch(contentUrl);
+          if (!contentResponse.ok) throw new Error(`Estado ${contentResponse.status}`);
+          const rawContent = await contentResponse.text();
+          let processedContent = rawContent;
+          if (file.path.endsWith('.ipynb')) {
+            processedContent = parseAndFormatNotebook(rawContent);
+          }
+          return { path: file.path, content: processedContent };
+      } catch (error: any) {
+          console.warn(`No se pudo obtener el contenido de ${file.path} desde jsDelivr, se omitirá. Error: ${error.message}`);
+          return { path: file.path, content: `Error: No se pudo obtener el contenido. (${error.message})` };
+      }
+    });
+
+    const files = (await Promise.all(filePromises)).filter(f => !f.content.startsWith('Error:'));
+    return { files, repoName: repo, envFileWarning };
+}
+
+
+export async function getRepoContents(repoUrl: string, githubToken?: string): Promise<{ files: GitHubFile[], repoName: string, envFileWarning: string }> {
   const repoInfo = parseRepoUrl(repoUrl);
 
   if (!repoInfo) {
     throw new Error('URL de repositorio de GitHub inválida. Por favor, usa un formato válido como https://github.com/owner/repo.');
   }
 
-  let { owner, repo, branch, path } = repoInfo;
-  let ref = branch;
-  let listData;
+  const { owner, repo, branch, path } = repoInfo;
 
-  // 1. Resolve default reference if no branch is specified by probing common names
-  if (!ref) {
-    const candidateBranches = ['main', 'master'];
-    let foundBranch = false;
-
-    for (const candidate of candidateBranches) {
-      console.log(`Intentando con la rama por defecto: '${candidate}'...`);
-      const listUrl = `https://data.jsdelivr.com/v1/package/gh/${owner}/${repo}@${candidate}/flat`;
-      try {
-        const listResponse = await fetch(listUrl);
-        if (listResponse.ok) {
-          ref = candidate;
-          listData = await listResponse.json();
-          foundBranch = true;
-          console.log(`¡Éxito! Rama por defecto encontrada: '${ref}'`);
-          break; 
-        }
-      } catch (e) {
-        console.warn(`Error al verificar la rama '${candidate}':`, e);
-      }
-    }
-
-    if (!foundBranch) {
-      throw new Error(`No se pudo determinar la rama por defecto. Se intentó con 'main' y 'master' sin éxito. Si el repositorio usa otra rama (ej. 'develop'), por favor, especifícala en la URL (ej: .../tree/develop).`);
-    }
+  if (githubToken) {
+    return getRepoContentsWithToken(owner, repo, branch, path, githubToken);
+  } else {
+    return getRepoContentsWithJsDelivr(owner, repo, branch, path);
   }
-
-  // 2. Fetch the file list if it wasn't fetched during branch detection
-  if (!listData) {
-      const listUrl = `https://data.jsdelivr.com/v1/package/gh/${owner}/${repo}@${ref}/flat`;
-      const listResponse = await fetch(listUrl);
-      if (!listResponse.ok) {
-        throw new Error(`No se pudo obtener la lista de archivos para la rama/ref '${ref}' (Estado: ${listResponse.status}). Asegúrate que la rama exista.`);
-      }
-      listData = await listResponse.json();
-  }
-
-  const allFiles = listData.files as { name: string }[];
-  let envFileWarning = '';
-
-  // Check for .env file at the root
-  const envFile = allFiles.find(file => file.name === '/.env');
-  if (envFile) {
-      envFileWarning = "\n--- ALERTA DE SEGURIDAD CRÍTICA ---\nSe detectó un archivo `.env` en la raíz del repositorio. Este es un anti-patrón de seguridad grave, ya que expone secretos. Este hecho debe ser mencionado en el feedback y penalizado severamente en la categoría de 'Buenas Prácticas'.\n---------------------------------\n";
-  }
-
-  // 3. Filter for relevant files
-  let relevantFiles = allFiles;
-  
-  if (path) {
-    const normalizedPath = `/${path}`;
-    relevantFiles = allFiles.filter(item => item.name.startsWith(normalizedPath + '/') || item.name === normalizedPath);
-  }
-  
-  const filesToFetch = relevantFiles
-    .map(file => ({ path: file.name.substring(1) }))
-    .filter(file => 
-      RELEVANT_EXTENSIONS.some(ext => file.path.endsWith(ext))
-    );
-
-  if (filesToFetch.length === 0) {
-    const pathMsg = path ? ` en la ruta especificada ('${path}')` : '';
-    throw new Error(`No se encontraron archivos relevantes (.py, .yml, .md, etc.)${pathMsg}. El directorio podría estar vacío o contener tipos de archivo no soportados.`);
-  }
-
-  // 4. Fetch content for each relevant file
-  const filePromises = filesToFetch.map(async (file): Promise<GitHubFile> => {
-    const contentUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${ref}/${file.path}`;
-    try {
-        const contentResponse = await fetch(contentUrl);
-        if (!contentResponse.ok) {
-            throw new Error(`Estado ${contentResponse.status}`);
-        }
-        const rawContent = await contentResponse.text();
-        
-        let processedContent = rawContent;
-        if (file.path.endsWith('.ipynb')) {
-          processedContent = parseAndFormatNotebook(rawContent);
-        }
-        return { path: file.path, content: processedContent };
-
-    } catch (error: any) {
-        console.warn(`No se pudo obtener el contenido de ${file.path} desde jsDelivr, se omitirá. Error: ${error.message}`);
-        return { path: file.path, content: `Error: No se pudo obtener el contenido. (${error.message})` };
-    }
-  });
-
-  const files = await Promise.all(filePromises);
-  const filteredFiles = files.filter(f => !f.content.startsWith('Error:'));
-  return { files: filteredFiles, repoName: repo, envFileWarning };
 }

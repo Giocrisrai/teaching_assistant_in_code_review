@@ -11,6 +11,7 @@ import { InfoIcon } from './components/icons';
 // FIX: Implement the main App component to structure the application UI and manage state.
 function App() {
   const [repoUrl, setRepoUrl] = useState<string>('');
+  const [githubToken, setGithubToken] = useState<string>('');
   const [rubric, setRubric] = useState<string>(DEFAULT_RUBRIC);
 
   const {
@@ -24,7 +25,7 @@ function App() {
 
   const handleAnalyze = () => {
     if (repoUrl && rubric) {
-      analyzeRepo(repoUrl, rubric);
+      analyzeRepo(repoUrl, rubric, githubToken);
     }
   };
 
@@ -35,6 +36,8 @@ function App() {
         <RepoInputForm
           repoUrl={repoUrl}
           setRepoUrl={setRepoUrl}
+          githubToken={githubToken}
+          setGithubToken={setGithubToken}
           rubric={rubric}
           setRubric={setRubric}
           onAnalyze={handleAnalyze}
