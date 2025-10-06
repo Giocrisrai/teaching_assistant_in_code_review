@@ -1,7 +1,9 @@
+
 import { useState, useCallback } from 'react';
 import type { EvaluationResult, AnalysisInput, GitHubFile } from '../types';
 import { listRepoFiles, getFilesContent, FILE_LIMIT } from '../services/githubService';
 import { extractFilesFromZip } from '../services/zipService';
+// import { extractFilesFromArchive } from '../services/rarService'; // REMOVED
 import { evaluateRepoWithGemini, selectRelevantFilesWithGemini } from '../services/geminiService';
 import { getCriteriaFromRubric } from '../utils/rubricParser';
 
@@ -48,12 +50,19 @@ export function useEvaluation() {
         onProgress(`Obteniendo el contenido de ${listedFiles.length} archivos...`);
         allFiles = await getFilesContent(owner, repoName, defaultBranch, listedFiles, input.githubToken);
 
-      } else { // source is 'zip'
-        onProgress(`Descomprimiendo y leyendo el archivo ${input.zipFile.name}...`);
-        const { files, repoName: name, envFileWarning: warning } = await extractFilesFromZip(input.zipFile);
-        allFiles = files;
-        fetchedRepoName = name;
-        envFileWarning = warning;
+      } else { // source is 'zip' (which now means an archive file)
+        onProgress(`Procesando el archivo ${input.archiveFile.name}...`);
+        
+        const fileNameLower = input.archiveFile.name.toLowerCase();
+        
+        if (fileNameLower.endsWith('.zip')) {
+          const extractionResult = await extractFilesFromZip(input.archiveFile);
+          allFiles = extractionResult.files;
+          fetchedRepoName = extractionResult.repoName;
+          envFileWarning = extractionResult.envFileWarning;
+        } else {
+          throw new Error("Formato de archivo no soportado. Por favor, comprime tu proyecto en un archivo .ZIP para asegurar la compatibilidad.");
+        }
       }
       
       setRepoName(fetchedRepoName);
@@ -72,7 +81,7 @@ export function useEvaluation() {
       }
 
       if (filesToProcess.length === 0) {
-        throw new Error("No se encontraron o seleccionaron archivos relevantes para analizar.");
+        throw new Error("No se encontraron archivos relevantes para analizar. Revisa si el proyecto está vacío o si los archivos están en carpetas ignoradas (como 'clases/' o 'venv/').");
       }
       
       // Step 4: Call Gemini API for evaluation

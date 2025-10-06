@@ -34,5 +34,5 @@ export interface JupyterNotebook {
 // Input for the main analysis hook
 export type AnalysisInput = { rubric: string; } & (
   | { source: 'github'; repoUrl: string; githubToken: string; }
-  | { source: 'zip'; zipFile: File; }
+  | { source: 'zip'; archiveFile: File; }
 );

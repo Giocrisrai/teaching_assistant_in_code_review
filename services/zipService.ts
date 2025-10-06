@@ -1,6 +1,7 @@
 import JSZip from 'jszip';
 import type { GitHubFile } from '../types';
-import { RELEVANT_EXTENSIONS } from '../constants';
+import { RELEVANT_EXTENSIONS, IGNORED_PATTERNS } from '../constants';
+import { extractTextFromPdf } from '../utils/pdfParser';
 
 /**
  * Extracts relevant files and their content from a user-uploaded ZIP file.
@@ -18,8 +19,11 @@ export async function extractFilesFromZip(zipFile: File): Promise<{ files: GitHu
     const repoName = zipFile.name.endsWith('.zip') ? zipFile.name.slice(0, -4) : zipFile.name;
 
     zip.forEach((relativePath, zipEntry) => {
-      // Ignore directories and files that are not relevant
-      if (zipEntry.dir || !RELEVANT_EXTENSIONS.some(ext => zipEntry.name.endsWith(ext))) {
+      const lowerPath = zipEntry.name.toLowerCase();
+      const isIgnored = IGNORED_PATTERNS.some(pattern => lowerPath.startsWith(pattern) || lowerPath.endsWith(pattern));
+
+      // Ignore directories, irrelevant extensions, and ignored patterns
+      if (zipEntry.dir || isIgnored || !RELEVANT_EXTENSIONS.some(ext => zipEntry.name.endsWith(ext))) {
         return;
       }
       
@@ -30,14 +34,22 @@ export async function extractFilesFromZip(zipFile: File): Promise<{ files: GitHu
            envFileWarning = "\n--- ALERTA DE SEGURIDAD CRÍTICA ---\nSe detectó un archivo `.env` en el archivo ZIP. Este es un anti-patrón de seguridad grave, ya que expone secretos. Este hecho debe ser mencionado en el feedback y penalizado severamente en la categoría de 'Buenas Prácticas'.\n---------------------------------\n";
       }
 
-      const promise = zipEntry.async('string').then(content => ({
-        path: zipEntry.name,
-        content: content,
-      })).catch(err => {
-        console.warn(`No se pudo leer el archivo ${zipEntry.name} del ZIP, se omitirá. Error:`, err);
-        return null;
-      });
-
+      const promise = (async (): Promise<GitHubFile | null> => {
+        try {
+            if (zipEntry.name.endsWith('.pdf')) {
+                const contentBuffer = await zipEntry.async('arraybuffer');
+                const textContent = await extractTextFromPdf(contentBuffer);
+                return { path: zipEntry.name, content: textContent };
+            } else {
+                const content = await zipEntry.async('string');
+                return { path: zipEntry.name, content: content };
+            }
+        } catch (err) {
+            console.warn(`No se pudo leer el archivo ${zipEntry.name} del ZIP, se omitirá. Error:`, err);
+            return null;
+        }
+      })();
+      
       filePromises.push(promise);
     });
 

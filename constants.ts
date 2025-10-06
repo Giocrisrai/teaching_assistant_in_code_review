@@ -1,10 +1,35 @@
 export const RELEVANT_EXTENSIONS = [
   '.py', '.yml', '.yaml', '.md', '.txt', '.json',
   '.ipynb', '.cfg', '.toml', '.ini', '.js', '.ts', '.html', '.css',
-  '.flake8', 'pytest.ini', '.coveragerc'
+  '.flake8', 'pytest.ini', '.coveragerc', '.pdf'
 ];
 
-export const DEFAULT_RUBRIC = `# Rúbrica de Evaluación: Proyecto Machine Learning con Kedro (Nivel Universitario - 3er Año)
+// Patterns to ignore during file discovery (similar to .gitignore)
+// All paths are converted to lowercase before matching.
+export const IGNORED_PATTERNS = [
+  // Python virtual environments
+  'venv/',
+  '.venv/',
+  'env/',
+  // Python cache
+  '__pycache__/',
+  // Common project/editor config
+  '.git/',
+  '.vscode/',
+  'node_modules/',
+  '.idea/',
+  // OS-specific files
+  '.ds_store',
+  'thumbs.db',
+  // User-added patterns for student projects
+  'clases/',
+  'ayudantias/',
+  'enunciado/',
+  'solucionario/',
+];
+
+
+const KEDRO_RUBRIC = `# Rúbrica de Evaluación: Proyecto Machine Learning con Kedro (Nivel Universitario - 3er Año)
 
 ## 1. Estructura y Configuración del Proyecto Kedro (10%)
 - **(100 pts) Muy buen desempeño:** Proyecto Kedro perfectamente estructurado, configuración completa en \`conf/\`, README detallado, estructura modular clara.
@@ -86,3 +111,76 @@ export const DEFAULT_RUBRIC = `# Rúbrica de Evaluación: Proyecto Machine Learn
 - **(20 pts) Desempeño insuficiente:** No reproducible.
 - **(0 pts) No logrado:** No cumple requisitos mínimos.
 `;
+
+const RAG_LLM_RUBRIC = `# Rúbrica de Evaluación: Diseño de Solución con LLM y RAG
+
+## 1. IE1. Diseño del proyecto de agente de IA (15%)
+- **(100 pts) Muy buen desempeño:** Diseña el proyecto de agente alineando completamente los requerimientos organizacionales con una propuesta clara, innovadora y viable.
+- **(80 pts) Buen desempeño:** Diseña el proyecto considerando adecuadamente los requerimientos, con una propuesta clara y funcional.
+- **(60 pts) Desempeño aceptable:** Diseña el proyecto considerando parcialmente los requerimientos organizacionales, con elementos generales o poco detallados.
+- **(30 pts) Desempeño incipiente:** Diseña el proyecto de forma poco coherente con los requerimientos del caso, presentando vacíos relevantes.
+- **(10 pts) No logrado:** No diseña el proyecto o lo hace sin relación con los requerimientos del caso.
+
+## 2. IE2. Elaboración de prompts para modelos de lenguaje (10%)
+- **(100 pts) Muy buen desempeño:** Elabora prompts precisos, bien estructurados y adaptados completamente a los requerimientos del caso.
+- **(80 pts) Buen desempeño:** Elabora prompts adecuados y relevantes, con una estructura funcional acorde al caso.
+- **(60 pts) Desempeño aceptable:** Elabora prompts con estructura básica y alineación parcial a los requerimientos.
+- **(30 pts) Desempeño incipiente:** Elabora prompts poco claros o ambiguos, con escasa relación con los requerimientos.
+- **(10 pts) No logrado:** No elabora prompts o lo hace sin conexión con el caso organizacional.
+
+## 3. IE3. Configuración de flujos RAG (10%)
+- **(100 pts) Muy buen desempeño:** Configura flujos RAG completos, integrando eficazmente recuperación de datos internos y externos con alta coherencia contextual.
+- **(80 pts) Buen desempeño:** Configura flujos RAG funcionales, incluyendo mecanismos adecuados y coherentes con el caso.
+- **(60 pts) Desempeño aceptable:** Configura flujos RAG básicos, con integración parcial o limitada de fuentes de datos.
+- **(30 pts) Desempeño incipiente:** Configura flujos incompletos o incoherentes con el contexto organizacional.
+- **(10 pts) No logrado:** No configura flujos RAG o lo hace de forma incorrecta.
+
+## 4. IE4. Coherencia entre datos y respuestas (10%)
+- **(100 pts) Muy buen desempeño:** Determina con precisión la coherencia entre datos y respuestas, justificando su impacto en la credibilidad de la solución.
+- **(80 pts) Buen desempeño:** Determina adecuadamente la relación entre datos y respuestas, con argumentación clara.
+- **(60 pts) Desempeño aceptable:** Determina parcialmente la coherencia, con explicaciones generales o poco desarrolladas.
+- **(30 pts) Desempeño incipiente:** Determina la coherencia de forma confusa o superficial, sin mayor análisis.
+- **(10 pts) No logrado:** No determina la coherencia entre datos y respuestas.
+
+## 5. IE5. Planificación de arquitectura (15%)
+- **(100 pts) Muy buen desempeño:** Planifica una arquitectura detallada, coherente y eficiente, integrando con claridad todos los módulos de recuperación, procesamiento y generación.
+- **(80 pts) Buen desempeño:** Planifica una arquitectura funcional, considerando correctamente los módulos clave.
+- **(60 pts) Desempeño aceptable:** Planifica una arquitectura básica, con integración parcial o poco detallada.
+- **(30 pts) Desempeño incipiente:** Planifica una arquitectura incompleta o poco clara.
+- **(10 pts) No logrado:** No planifica una arquitectura funcional.
+
+## 6. IE6. Diagrama de la arquitectura de solución (10%)
+- **(100 pts) Muy buen desempeño:** Construye un diagrama claro, detallado y bien estructurado, con representación precisa de componentes e integración.
+- **(80 pts) Buen desempeño:** Construye un diagrama comprensible y funcional, con buena representación de los elementos.
+- **(60 pts) Desempeño aceptable:** Construye un diagrama con componentes básicos y organización general.
+- **(30 pts) Desempeño incipiente:** Construye un diagrama confuso o incompleto, con errores de representación.
+- **(10 pts) No logrado:** No construye el diagrama o lo hace de forma incorrecta.
+
+## 7. IE7. Fundamentación de decisiones de diseño (10%)
+- **(100 pts) Muy buen desempeño:** Fundamenta con solidez técnica y claridad argumentativa todas las decisiones de diseño, alineándolas con los objetivos organizacionales.
+- **(80 pts) Buen desempeño:** Fundamenta adecuadamente las decisiones de diseño con argumentos relevantes y conexión con los objetivos.
+- **(60 pts) Desempeño aceptable:** Fundamenta parcialmente las decisiones, con argumentación general o poco precisa.
+- **(30 pts) Desempeño incipiente:** Fundamenta de forma débil o ambigua las decisiones de diseño.
+- **(10 pts) No logrado:** No fundamenta las decisiones tomadas.
+
+## 8. IE8. Elaboración de informe técnico (10%)
+- **(100 pts) Muy buen desempeño:** Elabora un informe técnico completo, organizado y riguroso, con documentación precisa y elementos visuales relevantes.
+- **(80 pts) Buen desempeño:** Elabora un informe adecuado, bien estructurado y con elementos que respaldan las decisiones.
+- **(60 pts) Desempeño aceptable:** Elabora un informe con estructura básica y respaldo parcial.
+- **(30 pts) Desempeño incipiente:** Elabora un informe poco claro o incompleto, con escasa documentación.
+- **(10 pts) No logrado:** No elabora el informe técnico o lo hace de forma deficiente.
+
+## 9. IE9. Uso de lenguaje técnico (10%)
+- **(100 pts) Muy buen desempeño:** Utiliza un lenguaje técnico preciso, con argumentaciones bien desarrolladas y respaldadas con evidencias o ejemplos claros.
+- **(80 pts) Buen desempeño:** Utiliza un lenguaje técnico adecuado, con argumentos relevantes y respaldos correctos.
+- **(60 pts) Desempeño aceptable:** Utiliza un lenguaje técnico básico, con argumentación general o poco desarrollada.
+- **(30 pts) Desempeño incipiente:** Utiliza un lenguaje poco técnico o con argumentaciones vagas.
+- **(10 pts) No logrado:** No utiliza lenguaje técnico ni respalda sus respuestas.
+`;
+
+export const PREDEFINED_RUBRICS = [
+  { name: 'Proyecto ML con Kedro', content: KEDRO_RUBRIC },
+  { name: 'Solución con LLM y RAG', content: RAG_LLM_RUBRIC },
+];
+
+export const DEFAULT_RUBRIC = PREDEFINED_RUBRICS[0].content;

@@ -1,6 +1,8 @@
-import React, { useState, useCallback } from 'react';
+
+import React, { useState, useCallback, useMemo } from 'react';
 import { GithubIcon, KeyIcon, EyeIcon, EyeOffIcon, UploadIcon, ZipIcon } from './icons';
 import type { AnalysisSource } from '../types';
+import { PREDEFINED_RUBRICS } from '../constants';
 
 interface RepoInputFormProps {
   analysisSource: AnalysisSource;
@@ -9,8 +11,8 @@ interface RepoInputFormProps {
   setRepoUrl: (url: string) => void;
   githubToken: string;
   setGithubToken: (token: string) => void;
-  zipFile: File | null;
-  setZipFile: (file: File | null) => void;
+  archiveFile: File | null;
+  setArchiveFile: (file: File | null) => void;
   rubric: string;
   setRubric: (rubric: string) => void;
   onAnalyze: () => void;
@@ -24,8 +26,8 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
   setRepoUrl,
   githubToken,
   setGithubToken,
-  zipFile,
-  setZipFile,
+  archiveFile,
+  setArchiveFile,
   rubric,
   setRubric,
   onAnalyze,
@@ -34,12 +36,37 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
   const [showToken, setShowToken] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Default to the 'zip' upload tab
+  useState(() => {
+    setAnalysisSource('zip');
+  });
+
+  const selectedRubricName = useMemo(() => {
+    const matchingRubric = PREDEFINED_RUBRICS.find(r => r.content.trim() === rubric.trim());
+    return matchingRubric ? matchingRubric.name : 'Personalizada';
+  }, [rubric]);
+
+  const handleRubricSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedName = e.target.value;
+    const selectedRubric = PREDEFINED_RUBRICS.find(r => r.name === selectedName);
+    if (selectedRubric) {
+      setRubric(selectedRubric.content);
+    }
+  };
+
   const handleFileChange = (files: FileList | null) => {
     if (files && files.length > 0) {
-      if (files[0].type === 'application/zip' || files[0].type === 'application/x-zip-compressed') {
-        setZipFile(files[0]);
+      const file = files[0];
+      const acceptedTypes = ['application/zip', 'application/x-zip-compressed'];
+      const acceptedExtensions = ['.zip'];
+      
+      const fileTypeIsAccepted = acceptedTypes.includes(file.type);
+      const fileNameIsAccepted = acceptedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+
+      if (fileTypeIsAccepted || fileNameIsAccepted) {
+        setArchiveFile(file);
       } else {
-        alert("Por favor, sube un archivo .zip válido.");
+        alert("Formato no soportado. Por favor, sube un archivo .zip.");
       }
     }
   };
@@ -73,25 +100,25 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
     onAnalyze();
   };
   
-  const isSubmitDisabled = isLoading || (analysisSource === 'github' && !repoUrl.trim()) || (analysisSource === 'zip' && !zipFile);
+  const isSubmitDisabled = isLoading || (analysisSource === 'github' && !repoUrl.trim()) || (analysisSource === 'zip' && !archiveFile);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 bg-gray-900/40 backdrop-blur-md p-6 sm:p-8 rounded-2xl border border-gray-700/80 shadow-2xl shadow-cyan-900/10">
       
       <div>
         <div className="flex justify-center bg-gray-800/60 p-1 rounded-full">
+           <TabButton
+            label="Subir .ZIP"
+            icon={<ZipIcon className="h-5 w-5 mr-2" />}
+            isActive={analysisSource === 'zip'}
+            onClick={() => setAnalysisSource('zip')}
+            disabled={isLoading}
+          />
           <TabButton
             label="GitHub"
             icon={<GithubIcon className="h-5 w-5 mr-2" />}
             isActive={analysisSource === 'github'}
             onClick={() => setAnalysisSource('github')}
-            disabled={isLoading}
-          />
-          <TabButton
-            label="Subir ZIP"
-            icon={<ZipIcon className="h-5 w-5 mr-2" />}
-            isActive={analysisSource === 'zip'}
-            onClick={() => setAnalysisSource('zip')}
             disabled={isLoading}
           />
         </div>
@@ -109,8 +136,8 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
             />
           ) : (
             <ZipInputField
-              zipFile={zipFile}
-              setZipFile={setZipFile}
+              archiveFile={archiveFile}
+              setArchiveFile={setArchiveFile}
               isLoading={isLoading}
               isDragging={isDragging}
               onDragEnter={handleDragEnter}
@@ -124,9 +151,26 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
       </div>
 
       <div>
-        <label htmlFor="rubric" className="block text-sm font-medium text-gray-300 mb-2">
-          Rúbrica de Evaluación
-        </label>
+        <div className="flex justify-between items-center mb-2">
+            <label htmlFor="rubric" className="block text-sm font-medium text-gray-300">
+                Rúbrica de Evaluación
+            </label>
+            <select
+                id="rubric-selector"
+                value={selectedRubricName}
+                onChange={handleRubricSelectionChange}
+                disabled={isLoading}
+                aria-label="Seleccionar plantilla de rúbrica"
+                className="rounded-md border-gray-600 bg-gray-800/80 py-1 px-2 text-gray-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/50 sm:text-sm text-xs"
+            >
+                {PREDEFINED_RUBRICS.map(r => (
+                    <option key={r.name} value={r.name}>{r.name}</option>
+                ))}
+                {selectedRubricName === 'Personalizada' && (
+                  <option value="Personalizada">Personalizada</option>
+                )}
+            </select>
+        </div>
         <textarea
           id="rubric"
           name="rubric"
@@ -145,7 +189,7 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
           disabled={isSubmitDisabled}
           className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-base font-semibold text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105"
         >
-          {isLoading ? 'Analizando...' : (analysisSource === 'github' ? 'Analizar Repositorio' : 'Analizar Archivo ZIP')}
+          {isLoading ? 'Analizando...' : (analysisSource === 'github' ? 'Analizar Repositorio' : 'Analizar Archivo .ZIP')}
         </button>
       </div>
     </form>
@@ -229,7 +273,7 @@ const GitHubInputFields: React.FC<any> = ({ repoUrl, setRepoUrl, githubToken, se
   </div>
 );
 
-const ZipInputField: React.FC<any> = ({ zipFile, setZipFile, isLoading, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, onFileChange }) => (
+const ZipInputField: React.FC<any> = ({ archiveFile, setArchiveFile, isLoading, isDragging, onDragEnter, onDragLeave, onDragOver, onDrop, onFileChange }) => (
   <div>
     <label className="block text-sm font-medium text-gray-300 mb-2">
       Archivo del Proyecto (.zip)
@@ -244,14 +288,14 @@ const ZipInputField: React.FC<any> = ({ zipFile, setZipFile, isLoading, isDraggi
         ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
     >
       <div className="space-y-1 text-center">
-        {zipFile ? (
+        {archiveFile ? (
             <>
                 <ZipIcon className="mx-auto h-12 w-12 text-cyan-400" />
-                <p className="text-sm text-gray-300 font-semibold">{zipFile.name}</p>
-                <p className="text-xs text-gray-500">{(zipFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-sm text-gray-300 font-semibold">{archiveFile.name}</p>
+                <p className="text-xs text-gray-500">{(archiveFile.size / 1024 / 1024).toFixed(2)} MB</p>
                 <button
                     type="button"
-                    onClick={() => setZipFile(null)}
+                    onClick={() => setArchiveFile(null)}
                     disabled={isLoading}
                     className="text-xs text-red-400 hover:text-red-300 disabled:opacity-50"
                 >
@@ -266,12 +310,12 @@ const ZipInputField: React.FC<any> = ({ zipFile, setZipFile, isLoading, isDraggi
                     htmlFor="file-upload"
                     className="relative cursor-pointer rounded-md font-medium text-cyan-400 hover:text-cyan-300 focus-within:outline-none"
                   >
-                    <span>Sube un archivo</span>
-                    <input id="file-upload" name="file-upload" type="file" className="sr-only" accept=".zip,application/zip" onChange={(e) => onFileChange(e.target.files)} disabled={isLoading} />
+                    <span>Sube un archivo .ZIP</span>
+                    <input id="file-upload" name="file-upload" type="file" className="sr-only" accept=".zip,application/zip,application/x-zip-compressed" onChange={(e) => onFileChange(e.target.files)} disabled={isLoading} />
                   </label>
                   <p className="pl-1">o arrástralo y suéltalo aquí</p>
                 </div>
-                <p className="text-xs text-gray-500">Solo archivos .zip</p>
+                <p className="text-xs text-gray-500">Método recomendado y más robusto</p>
             </>
         )}
       </div>

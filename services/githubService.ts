@@ -1,6 +1,7 @@
 import type { GitHubFile, JupyterNotebook, NotebookCell } from '../types';
 import { base64Decode } from '../utils';
-import { RELEVANT_EXTENSIONS } from '../constants';
+import { RELEVANT_EXTENSIONS, IGNORED_PATTERNS } from '../constants';
+import { extractTextFromPdf } from '../utils/pdfParser';
 
 const FILE_LIMIT = 500; // Max number of files to process before triggering AI triage.
 
@@ -103,16 +104,21 @@ async function listFilesWithToken(
         envFileWarning = "\n--- ALERTA DE SEGURIDAD CRÍTICA ---\nSe detectó un archivo `.env` en el repositorio. Este es un anti-patrón de seguridad grave, ya que expone secretos. Este hecho debe ser mencionado en el feedback y penalizado severamente en la categoría de 'Buenas Prácticas'.\n---------------------------------\n";
     }
 
-    let relevantFiles = allFiles.filter(item => item.type === 'blob');
+    let repoFiles = allFiles.filter(item => item.type === 'blob');
     if (path) {
-        relevantFiles = relevantFiles.filter(item => item.path.startsWith(path + '/') || item.path === path);
+        repoFiles = repoFiles.filter(item => item.path.startsWith(path + '/') || item.path === path);
     }
     
-    const filesToList = relevantFiles
-        .filter(file => RELEVANT_EXTENSIONS.some(ext => file.path.endsWith(ext)))
+    const relevantFiles = repoFiles
+        .filter(file => {
+          const lowerPath = file.path.toLowerCase();
+          const isIgnored = IGNORED_PATTERNS.some(pattern => lowerPath.startsWith(pattern) || lowerPath.endsWith(pattern));
+          const hasRelevantExtension = RELEVANT_EXTENSIONS.some(ext => lowerPath.endsWith(ext));
+          return !isIgnored && hasRelevantExtension;
+        })
         .map(file => ({ path: file.path, sha: file.sha }));
     
-    return { files: filesToList, repoName: repo, envFileWarning, defaultBranch: branchToUse! };
+    return { files: relevantFiles, repoName: repo, envFileWarning, defaultBranch: branchToUse! };
 }
 
 async function listFilesWithJsDelivr(
@@ -169,17 +175,22 @@ async function listFilesWithJsDelivr(
       envFileWarning = "\n--- ALERTA DE SEGURIDAD CRÍTICA ---\nSe detectó un archivo `.env` en la raíz del repositorio. Este es un anti-patrón de seguridad grave, ya que expone secretos. Este hecho debe ser mencionado en el feedback y penalizado severamente en la categoría de 'Buenas Prácticas'.\n---------------------------------\n";
     }
 
-    let relevantFiles = allFiles;
+    let repoFiles = allFiles;
     if (path) {
       const normalizedPath = `/${path}`;
-      relevantFiles = allFiles.filter(item => item.name.startsWith(normalizedPath + '/') || item.name === normalizedPath);
+      repoFiles = allFiles.filter(item => item.name.startsWith(normalizedPath + '/') || item.name === normalizedPath);
     }
     
-    const filesToList = relevantFiles
+    const relevantFiles = repoFiles
       .map(file => ({ path: file.name.substring(1) }))
-      .filter(file => RELEVANT_EXTENSIONS.some(ext => file.path.endsWith(ext)));
+      .filter(file => {
+          const lowerPath = file.path.toLowerCase();
+          const isIgnored = IGNORED_PATTERNS.some(pattern => lowerPath.startsWith(pattern) || lowerPath.endsWith(pattern));
+          const hasRelevantExtension = RELEVANT_EXTENSIONS.some(ext => lowerPath.endsWith(ext));
+          return !isIgnored && hasRelevantExtension;
+      });
 
-    return { files: filesToList, repoName: repo, envFileWarning, defaultBranch: ref };
+    return { files: relevantFiles, repoName: repo, envFileWarning, defaultBranch: ref };
 }
 
 export async function listRepoFiles(repoUrl: string, githubToken?: string): Promise<{ files: RepoFile[], repoName: string, envFileWarning: string, defaultBranch: string, owner: string }> {
@@ -196,6 +207,16 @@ export async function listRepoFiles(repoUrl: string, githubToken?: string): Prom
     return { ...listResult, owner };
 }
 
+function base64ToArrayBuffer(base64: string): ArrayBuffer {
+    const binaryString = atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
 export async function getFilesContent(
     owner: string,
     repo: string,
@@ -205,24 +226,46 @@ export async function getFilesContent(
 ): Promise<GitHubFile[]> {
     const filePromises = filesToFetch.map(async (file): Promise<GitHubFile | null> => {
         try {
-            let rawContent: string;
-            if (token && file.sha) { // Use GitHub API
-                const blobUrl = `https://api.github.com/repos/${owner}/${repo}/git/blobs/${file.sha}`;
-                const contentResponse = await fetch(blobUrl, { headers: { Authorization: `token ${token}` } });
-                if (!contentResponse.ok) throw new Error(`Estado ${contentResponse.status}`);
-                const blobData = await contentResponse.json();
-                rawContent = base64Decode(blobData.content);
-            } else { // Use jsDelivr
-                const contentUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${file.path}`;
-                const contentResponse = await fetch(contentUrl);
-                if (!contentResponse.ok) throw new Error(`Estado ${contentResponse.status}`);
-                rawContent = await contentResponse.text();
+            let processedContent: string;
+
+            if (file.path.endsWith('.pdf')) {
+                let pdfBuffer: ArrayBuffer;
+                if (token && file.sha) {
+                    const blobUrl = `https://api.github.com/repos/${owner}/${repo}/git/blobs/${file.sha}`;
+                    const contentResponse = await fetch(blobUrl, { headers: { Authorization: `token ${token}` } });
+                    if (!contentResponse.ok) throw new Error(`Estado ${contentResponse.status}`);
+                    const blobData = await contentResponse.json();
+                    pdfBuffer = base64ToArrayBuffer(blobData.content);
+                } else {
+                    const contentUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${file.path}`;
+                    const contentResponse = await fetch(contentUrl);
+                    if (!contentResponse.ok) throw new Error(`Estado ${contentResponse.status}`);
+                    pdfBuffer = await contentResponse.arrayBuffer();
+                }
+                processedContent = await extractTextFromPdf(pdfBuffer);
+            } else {
+                // This block handles both notebooks and regular text files
+                let rawContent: string;
+                if (token && file.sha) {
+                    const blobUrl = `https://api.github.com/repos/${owner}/${repo}/git/blobs/${file.sha}`;
+                    const contentResponse = await fetch(blobUrl, { headers: { Authorization: `token ${token}` } });
+                    if (!contentResponse.ok) throw new Error(`Estado ${contentResponse.status}`);
+                    const blobData = await contentResponse.json();
+                    rawContent = base64Decode(blobData.content);
+                } else {
+                    const contentUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${file.path}`;
+                    const contentResponse = await fetch(contentUrl);
+                    if (!contentResponse.ok) throw new Error(`Estado ${contentResponse.status}`);
+                    rawContent = await contentResponse.text();
+                }
+                
+                if (file.path.endsWith('.ipynb')) {
+                    processedContent = parseAndFormatNotebook(rawContent);
+                } else {
+                    processedContent = rawContent;
+                }
             }
-            
-            let processedContent = rawContent;
-            if (file.path.endsWith('.ipynb')) {
-              processedContent = parseAndFormatNotebook(rawContent);
-            }
+
             return { path: file.path, content: processedContent };
         } catch (error: any) {
             console.warn(`No se pudo obtener el contenido de ${file.path}, se omitirá. Error: ${error.message}`);

@@ -13,7 +13,7 @@ function App() {
   const [analysisSource, setAnalysisSource] = useState<AnalysisSource>('github');
   const [repoUrl, setRepoUrl] = useState<string>('');
   const [githubToken, setGithubToken] = useState<string>('');
-  const [zipFile, setZipFile] = useState<File | null>(null);
+  const [archiveFile, setArchiveFile] = useState<File | null>(null);
   const [rubric, setRubric] = useState<string>(DEFAULT_RUBRIC);
 
   const {
@@ -28,8 +28,8 @@ function App() {
   const handleAnalyze = () => {
     if (analysisSource === 'github' && repoUrl && rubric) {
       analyzeRepo({ source: 'github', repoUrl, rubric, githubToken });
-    } else if (analysisSource === 'zip' && zipFile && rubric) {
-      analyzeRepo({ source: 'zip', zipFile, rubric });
+    } else if (analysisSource === 'zip' && archiveFile && rubric) {
+      analyzeRepo({ source: 'zip', archiveFile, rubric });
     }
   };
 
@@ -47,8 +47,8 @@ function App() {
               setRepoUrl={setRepoUrl}
               githubToken={githubToken}
               setGithubToken={setGithubToken}
-              zipFile={zipFile}
-              setZipFile={setZipFile}
+              archiveFile={archiveFile}
+              setArchiveFile={setArchiveFile}
               rubric={rubric}
               setRubric={setRubric}
               onAnalyze={handleAnalyze}
