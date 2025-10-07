@@ -7,13 +7,14 @@ import { RepoInputForm } from './components/RepoInputForm';
 import { Loader } from './components/Loader';
 import { EvaluationReport } from './components/EvaluationReport';
 import { InfoIcon } from './components/icons';
-import type { AnalysisSource } from './types';
+import type { AnalysisInput, AnalysisSource } from './types';
 
 function App() {
   const [analysisSource, setAnalysisSource] = useState<AnalysisSource>('github');
   const [repoUrl, setRepoUrl] = useState<string>('');
   const [githubToken, setGithubToken] = useState<string>('');
   const [archiveFile, setArchiveFile] = useState<File | null>(null);
+  const [supplementaryFiles, setSupplementaryFiles] = useState<File[]>([]);
   const [rubric, setRubric] = useState<string>(DEFAULT_RUBRIC);
 
   const {
@@ -27,9 +28,9 @@ function App() {
 
   const handleAnalyze = () => {
     if (analysisSource === 'github' && repoUrl && rubric) {
-      analyzeRepo({ source: 'github', repoUrl, rubric, githubToken });
+      analyzeRepo({ source: 'github', repoUrl, rubric, githubToken }, supplementaryFiles);
     } else if (analysisSource === 'zip' && archiveFile && rubric) {
-      analyzeRepo({ source: 'zip', archiveFile, rubric });
+      analyzeRepo({ source: 'zip', archiveFile, rubric }, supplementaryFiles);
     }
   };
 
@@ -49,6 +50,8 @@ function App() {
               setGithubToken={setGithubToken}
               archiveFile={archiveFile}
               setArchiveFile={setArchiveFile}
+              supplementaryFiles={supplementaryFiles}
+              setSupplementaryFiles={setSupplementaryFiles}
               rubric={rubric}
               setRubric={setRubric}
               onAnalyze={handleAnalyze}
@@ -63,7 +66,7 @@ function App() {
             <InfoIcon className="w-5 h-5 text-red-400 flex-shrink-0 mt-1" />
             <div>
               <h3 className="font-bold text-red-300">Error en el Análisis</h3>
-              <p className="text-red-300/90">{error}</p>
+              <p className="text-red-300/90 whitespace-pre-wrap">{error}</p>
             </div>
           </div>
         )}

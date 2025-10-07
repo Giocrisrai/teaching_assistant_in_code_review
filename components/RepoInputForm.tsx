@@ -1,6 +1,5 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
-import { GithubIcon, KeyIcon, EyeIcon, EyeOffIcon, UploadIcon, ZipIcon } from './icons';
+import { GithubIcon, KeyIcon, EyeIcon, EyeOffIcon, UploadIcon, ZipIcon, DocumentTextIcon, PdfIcon, XIcon } from './icons';
 import type { AnalysisSource } from '../types';
 import { PREDEFINED_RUBRICS } from '../constants';
 
@@ -13,6 +12,8 @@ interface RepoInputFormProps {
   setGithubToken: (token: string) => void;
   archiveFile: File | null;
   setArchiveFile: (file: File | null) => void;
+  supplementaryFiles: File[];
+  setSupplementaryFiles: (files: File[]) => void;
   rubric: string;
   setRubric: (rubric: string) => void;
   onAnalyze: () => void;
@@ -28,6 +29,8 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
   setGithubToken,
   archiveFile,
   setArchiveFile,
+  supplementaryFiles,
+  setSupplementaryFiles,
   rubric,
   setRubric,
   onAnalyze,
@@ -149,6 +152,12 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
           )}
         </div>
       </div>
+      
+      <SupplementaryFilesInput
+        files={supplementaryFiles}
+        setFiles={setSupplementaryFiles}
+        isLoading={isLoading}
+      />
 
       <div>
         <div className="flex justify-between items-center mb-2">
@@ -322,3 +331,85 @@ const ZipInputField: React.FC<any> = ({ archiveFile, setArchiveFile, isLoading, 
     </div>
   </div>
 );
+
+const SupplementaryFilesInput: React.FC<{ files: File[], setFiles: (files: File[]) => void, isLoading: boolean }> = ({ files, setFiles, isLoading }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const acceptedExtensions = ['.pdf', '.docx', '.pptx'];
+
+  const handleFilesChange = (newFiles: FileList | null) => {
+    if (!newFiles) return;
+
+    const addedFiles = Array.from(newFiles).filter(file => {
+      const isAccepted = acceptedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+      if (!isAccepted) {
+        alert(`Archivo no soportado: ${file.name}. Solo se aceptan ${acceptedExtensions.join(', ')}.`);
+      }
+      return isAccepted;
+    });
+
+    setFiles([...files, ...addedFiles]);
+  };
+
+  const handleRemoveFile = (fileNameToRemove: string) => {
+    setFiles(files.filter(file => file.name !== fileNameToRemove));
+  };
+
+  const onDragEnter = useCallback((e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }, []);
+  const onDragLeave = useCallback((e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); }, []);
+  const onDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); }, []);
+  const onDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    handleFilesChange(e.dataTransfer.files);
+  }, [files]);
+
+  const getFileIcon = (fileName: string) => {
+    const lowerName = fileName.toLowerCase();
+    if (lowerName.endsWith('.pdf')) return <PdfIcon className="w-6 h-6 text-red-400" />;
+    if (lowerName.endsWith('.docx')) return <DocumentTextIcon className="w-6 h-6 text-blue-400" />;
+    if (lowerName.endsWith('.pptx')) return <DocumentTextIcon className="w-6 h-6 text-orange-400" />;
+    return <DocumentTextIcon className="w-6 h-6 text-gray-400" />;
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-300 mb-2">
+        Archivos Complementarios (Opcional)
+      </label>
+      <div
+        onDragEnter={onDragEnter} onDragLeave={onDragLeave} onDragOver={onDragOver} onDrop={onDrop}
+        className={`mt-1 flex justify-center items-center px-6 pt-5 pb-6 border-2 border-dashed rounded-md transition-colors
+        ${isDragging ? 'border-cyan-500 bg-cyan-900/20' : 'border-gray-600 hover:border-gray-500'}
+        ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+      >
+        <div className="space-y-1 text-center">
+          <UploadIcon className="mx-auto h-12 w-12 text-gray-500" />
+          <div className="flex text-sm text-gray-400">
+            <label htmlFor="supplementary-file-upload" className="relative cursor-pointer rounded-md font-medium text-cyan-400 hover:text-cyan-300 focus-within:outline-none">
+              <span>Sube tus archivos</span>
+              <input id="supplementary-file-upload" name="supplementary-file-upload" type="file" className="sr-only" multiple accept=".pdf,.docx,.pptx" onChange={(e) => handleFilesChange(e.target.files)} disabled={isLoading} />
+            </label>
+            <p className="pl-1">o arrástralos y suéltalos aquí</p>
+          </div>
+          <p className="text-xs text-gray-500">Soporta PDF, DOCX, y PPTX</p>
+        </div>
+      </div>
+      {files.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {files.map(file => (
+            <div key={file.name} className="flex items-center justify-between bg-gray-800/60 p-2 rounded-md">
+              <div className="flex items-center gap-3">
+                {getFileIcon(file.name)}
+                <span className="text-sm text-gray-300 truncate">{file.name}</span>
+              </div>
+              <button type="button" onClick={() => handleRemoveFile(file.name)} disabled={isLoading} className="text-gray-500 hover:text-red-400 disabled:opacity-50">
+                <XIcon className="w-5 h-5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};

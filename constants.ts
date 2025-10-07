@@ -1,7 +1,7 @@
 export const RELEVANT_EXTENSIONS = [
   '.py', '.yml', '.yaml', '.md', '.txt', '.json',
   '.ipynb', '.cfg', '.toml', '.ini', '.js', '.ts', '.html', '.css',
-  '.flake8', 'pytest.ini', '.coveragerc', '.pdf'
+  '.flake8', 'pytest.ini', '.coveragerc', '.pdf', '.docx', '.pptx'
 ];
 
 // Patterns to ignore during file discovery (similar to .gitignore)

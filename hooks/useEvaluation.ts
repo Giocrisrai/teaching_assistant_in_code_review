@@ -1,11 +1,11 @@
-
 import { useState, useCallback } from 'react';
 import type { EvaluationResult, AnalysisInput, GitHubFile } from '../types';
 import { listRepoFiles, getFilesContent, FILE_LIMIT } from '../services/githubService';
 import { extractFilesFromZip } from '../services/zipService';
-// import { extractFilesFromArchive } from '../services/rarService'; // REMOVED
 import { evaluateRepoWithGemini, selectRelevantFilesWithGemini } from '../services/geminiService';
 import { getCriteriaFromRubric } from '../utils/rubricParser';
+import { extractTextFromPdf } from '../utils/pdfParser';
+import { extractTextFromOfficeXml } from '../utils/officeParser';
 
 export function useEvaluation() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -14,7 +14,7 @@ export function useEvaluation() {
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [repoName, setRepoName] = useState<string>('');
 
-  const analyzeRepo = useCallback(async (input: AnalysisInput) => {
+  const analyzeRepo = useCallback(async (input: AnalysisInput, supplementaryFiles: File[] = []) => {
     setIsLoading(true);
     setError(null);
     setEvaluationResult(null);
@@ -32,7 +32,7 @@ export function useEvaluation() {
         throw new Error("La rúbrica proporcionada no tiene un formato válido o no contiene criterios. Asegúrate de que cada criterio comience con '## X. ...'.");
       }
 
-      let allFiles: GitHubFile[];
+      let repoFiles: GitHubFile[];
       let fetchedRepoName: string;
       let envFileWarning: string;
       
@@ -48,25 +48,47 @@ export function useEvaluation() {
         envFileWarning = warning;
 
         onProgress(`Obteniendo el contenido de ${listedFiles.length} archivos...`);
-        allFiles = await getFilesContent(owner, repoName, defaultBranch, listedFiles, input.githubToken);
+        repoFiles = await getFilesContent(owner, repoName, defaultBranch, listedFiles, input.githubToken);
 
-      } else { // source is 'zip' (which now means an archive file)
+      } else { // source is 'zip'
         onProgress(`Procesando el archivo ${input.archiveFile.name}...`);
         
-        const fileNameLower = input.archiveFile.name.toLowerCase();
-        
-        if (fileNameLower.endsWith('.zip')) {
-          const extractionResult = await extractFilesFromZip(input.archiveFile);
-          allFiles = extractionResult.files;
-          fetchedRepoName = extractionResult.repoName;
-          envFileWarning = extractionResult.envFileWarning;
-        } else {
-          throw new Error("Formato de archivo no soportado. Por favor, comprime tu proyecto en un archivo .ZIP para asegurar la compatibilidad.");
-        }
+        const extractionResult = await extractFilesFromZip(input.archiveFile);
+        repoFiles = extractionResult.files;
+        fetchedRepoName = extractionResult.repoName;
+        envFileWarning = extractionResult.envFileWarning;
       }
       
+      // Step 2.5: Process supplementary files
+      onProgress('Procesando archivos complementarios...');
+      const supplementaryParsedFiles: GitHubFile[] = [];
+      for (const file of supplementaryFiles) {
+          try {
+              const buffer = await file.arrayBuffer();
+              let content = '';
+              const lowerName = file.name.toLowerCase();
+
+              if (lowerName.endsWith('.pdf')) {
+                  content = await extractTextFromPdf(buffer);
+              } else if (lowerName.endsWith('.docx') || lowerName.endsWith('.pptx')) {
+                  content = await extractTextFromOfficeXml(buffer, file.name);
+              } else {
+                  console.warn(`Archivo complementario no soportado: ${file.name}, se omitirá.`);
+                  continue; // Skip unsupported files
+              }
+              supplementaryParsedFiles.push({
+                  path: `archivo_complementario/${file.name}`,
+                  content: content
+              });
+          } catch (e) {
+              console.error(`Error al procesar el archivo complementario ${file.name}:`, e);
+          }
+      }
+
+      const allFiles = [...repoFiles, ...supplementaryParsedFiles];
       setRepoName(fetchedRepoName);
-      console.log(`Se encontraron ${allFiles.length} archivos relevantes en '${fetchedRepoName}'.`);
+      console.log(`Se encontraron ${repoFiles.length} archivos de repo y ${supplementaryParsedFiles.length} archivos complementarios. Total: ${allFiles.length}.`);
+
 
       let filesToProcess = allFiles;
 

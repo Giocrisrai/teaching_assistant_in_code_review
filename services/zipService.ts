@@ -2,6 +2,7 @@ import JSZip from 'jszip';
 import type { GitHubFile } from '../types';
 import { RELEVANT_EXTENSIONS, IGNORED_PATTERNS } from '../constants';
 import { extractTextFromPdf } from '../utils/pdfParser';
+import { extractTextFromOfficeXml } from '../utils/officeParser';
 
 /**
  * Extracts relevant files and their content from a user-uploaded ZIP file.
@@ -23,7 +24,7 @@ export async function extractFilesFromZip(zipFile: File): Promise<{ files: GitHu
       const isIgnored = IGNORED_PATTERNS.some(pattern => lowerPath.startsWith(pattern) || lowerPath.endsWith(pattern));
 
       // Ignore directories, irrelevant extensions, and ignored patterns
-      if (zipEntry.dir || isIgnored || !RELEVANT_EXTENSIONS.some(ext => zipEntry.name.endsWith(ext))) {
+      if (zipEntry.dir || isIgnored || !RELEVANT_EXTENSIONS.some(ext => lowerPath.endsWith(ext))) {
         return;
       }
       
@@ -36,9 +37,14 @@ export async function extractFilesFromZip(zipFile: File): Promise<{ files: GitHu
 
       const promise = (async (): Promise<GitHubFile | null> => {
         try {
-            if (zipEntry.name.endsWith('.pdf')) {
+            const lowerName = zipEntry.name.toLowerCase();
+            if (lowerName.endsWith('.pdf')) {
                 const contentBuffer = await zipEntry.async('arraybuffer');
                 const textContent = await extractTextFromPdf(contentBuffer);
+                return { path: zipEntry.name, content: textContent };
+            } else if (lowerName.endsWith('.docx') || lowerName.endsWith('.pptx')) {
+                const contentBuffer = await zipEntry.async('arraybuffer');
+                const textContent = await extractTextFromOfficeXml(contentBuffer, zipEntry.name);
                 return { path: zipEntry.name, content: textContent };
             } else {
                 const content = await zipEntry.async('string');
