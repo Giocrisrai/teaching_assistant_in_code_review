@@ -21,11 +21,7 @@ export const IGNORED_PATTERNS = [
   // OS-specific files
   '.ds_store',
   'thumbs.db',
-  // User-added patterns for student projects
-  'clases/',
-  'ayudantias/',
-  'enunciado/',
-  'solucionario/',
+  '__macosx/',
 ];
 
 

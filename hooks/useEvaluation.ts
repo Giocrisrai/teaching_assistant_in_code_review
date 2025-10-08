@@ -63,6 +63,13 @@ export function useEvaluation() {
       onProgress('Procesando archivos complementarios...');
       const supplementaryParsedFiles: GitHubFile[] = [];
       for (const file of supplementaryFiles) {
+          // macOS resource fork files start with '._' and are not the actual file.
+          // They are not valid PDFs, DOCXs, etc., and will cause parsing errors.
+          // Silently ignore them to prevent crashes.
+          if (file.name.startsWith('._')) {
+              console.warn(`Ignorando archivo de metadatos de macOS: ${file.name}`);
+              continue;
+          }
           try {
               const buffer = await file.arrayBuffer();
               let content = '';
