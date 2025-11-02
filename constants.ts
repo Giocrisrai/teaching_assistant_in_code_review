@@ -174,9 +174,83 @@ const RAG_LLM_RUBRIC = `# Rúbrica de Evaluación: Diseño de Solución con LLM 
 - **(10 pts) No logrado:** No utiliza lenguaje técnico ni respalda sus respuestas.
 `;
 
+const AGENT_FUNCIONAL_RUBRIC = `# Rúbrica de Evaluación: Desarrollo de un Agente Funcional
+
+## 1. IE1. Configuración de Herramientas del Agente (10%)
+- **(100 pts) Muy buen desempeño:** Configura todas las herramientas del agente de forma autónoma y precisa, ejecutando funciones específicas sin errores.
+- **(80 pts) Buen desempeño:** Configura la mayoría de las herramientas del agente, logrando autonomía funcional con mínimos ajustes necesarios.
+- **(60 pts) Desempeño aceptable:** Configura parcialmente las herramientas del agente, permitiendo funciones básicas con autonomía limitada.
+- **(30 pts) Desempeño incipiente:** Configura algunas herramientas del agente, pero con errores que impiden su funcionamiento autónomo.
+- **(0 pts) No logrado:** No configura herramientas o la configuración impide la ejecución de funciones.
+
+## 2. IE2. Integración de Frameworks y Escalabilidad (10%)
+- **(100 pts) Muy buen desempeño:** Integra frameworks totalmente adecuados, asegurando escalabilidad y compatibilidad técnica.
+- **(80 pts) Buen desempeño:** Integra frameworks adecuados con leves limitaciones en escalabilidad o compatibilidad.
+- **(60 pts) Desempeño aceptable:** Integra frameworks parcialmente adecuados, comprometiendo uno de los dos criterios (escalabilidad o compatibilidad).
+- **(30 pts) Desempeño incipiente:** Integra frameworks poco adecuados que limitan seriamente el desempeño del agente.
+- **(0 pts) No logrado:** No integra frameworks o los integrados no permiten desarrollo funcional del agente.
+
+## 3. IE3. Configuración de Memoria de Contenido (10%)
+- **(100 pts) Muy buen desempeño:** Configura completamente los procesos de memoria de contenido, asegurando continuidad efectiva en flujos prolongados.
+- **(80 pts) Buen desempeño:** Configura los procesos de memoria con pequeñas fallas que afectan levemente la continuidad.
+- **(60 pts) Desempeño aceptable:** Configura parcialmente los procesos de memoria, con limitaciones notables en la continuidad del flujo.
+- **(30 pts) Desempeño incipiente:** Configura procesos de memoria de forma deficiente, afectando significativamente la continuidad.
+- **(0 pts) No logrado:** No configura procesos de memoria de contenido o estos son inoperantes.
+
+## 4. IE4. Recuperación de Contexto Semántico (10%)
+- **(100 pts) Muy buen desempeño:** Configura de forma completa y precisa la recuperación semántica de contexto, logrando continuidad sólida.
+- **(80 pts) Buen desempeño:** Configura recuperación semántica con pequeños errores que no comprometen mayormente el flujo.
+- **(60 pts) Desempeño aceptable:** Configura parcialmente la recuperación de contexto, con interrupciones ocasionales en el flujo.
+- **(30 pts) Desempeño incipiente:** Configura procesos incompletos o inconsistentes de recuperación semántica, generando interrupciones frecuentes.
+- **(0 pts) No logrado:** No configura procesos de recuperación de contexto o son ineficaces.
+
+## 5. IE5. Diseño y Planificación de Tareas (10%)
+- **(100 pts) Muy buen desempeño:** Diseña esquemas de planificación claros, lógicos y priorizados que optimizan el flujo de tareas del agente.
+- **(80 pts) Buen desempeño:** Diseña esquemas funcionales con pequeñas mejoras pendientes en la secuenciación o prioridades.
+- **(60 pts) Desempeño aceptable:** Diseña esquemas con lógica básica pero poco priorizados o incompletos.
+- **(30 pts) Desempeño incipiente:** Diseña esquemas confusos o sin una secuencia clara de tareas.
+- **(0 pts) No logrado:** No diseña esquemas de planificación de tareas.
+
+## 6. IE6. Toma de Decisiones Adaptativa del Agente (10%)
+- **(100 pts) Muy buen desempeño:** Demuestra con múltiples ejemplos claros cómo el agente toma decisiones adaptativas según el entorno.
+- **(80 pts) Buen desempeño:** Demuestra ejemplos relevantes aunque con menor diversidad o profundidad en los escenarios.
+- **(60 pts) Desempeño aceptable:** Demuestra ejemplos básicos que ilustran decisiones del agente de forma limitada.
+- **(30 pts) Desempeño incipiente:** Demuestra ejemplos poco claros o que no evidencian adecuadamente el comportamiento del agente.
+- **(0 pts) No logrado:** No demuestra ejemplos de toma de decisiones o los ejemplos no son válidos.
+
+## 7. IE7. Documentación de Arquitectura (Diagrama y README) (10%)
+- **(100 pts) Muy buen desempeño:** Elabora diagrama y README completos y claros, describiendo la arquitectura del agente con detalle.
+- **(80 pts) Buen desempeño:** Elabora ambos recursos con información adecuada pero menor nivel de detalle o claridad.
+- **(60 pts) Desempeño aceptable:** Elabora uno de los recursos correctamente o ambos de forma parcial.
+- **(30 pts) Desempeño incipiente:** Elabora los recursos de forma incompleta o confusa, dificultando la comprensión de la arquitectura.
+- **(0 pts) No logrado:** No elabora diagrama ni README o el contenido no es pertinente.
+
+## 8. IE8. Justificación de la Elección de Componentes (10%)
+- **(100 pts) Muy buen desempeño:** Justifica de forma clara y fundamentada la elección de todos los componentes según los requerimientos del flujo.
+- **(80 pts) Buen desempeño:** Justifica la mayoría de las elecciones, con razonamientos técnicos pertinentes.
+- **(60 pts) Desempeño aceptable:** Justifica parcialmente las elecciones, sin evidencia clara de alineación con el flujo.
+- **(30 pts) Desempeño incipiente:** Justifica de forma limitada o con argumentos poco pertinentes.
+- **(0 pts) No logrado:** No justifica la elección de componentes o lo hace incorrectamente.
+
+## 9. IE9. Elaboración de Informe Técnico (10%)
+- **(100 pts) Muy buen desempeño:** Elabora un informe técnico completo, con diagramas precisos y documentación sólida que respalda el diseño.
+- **(80 pts) Buen desempeño:** Elabora un informe adecuado, con diagramas funcionales y documentación general.
+- **(60 pts) Desempeño aceptable:** Elabora un informe con contenido parcial o incompleto en diagramas o documentación.
+- **(30 pts) Desempeño incipiente:** Elabora un informe poco estructurado, con escasa documentación o ausencias notables.
+- **(0 pts) No logrado:** No elabora informe técnico o el contenido es irrelevante.
+
+## 10. IE10. Uso de Lenguaje Técnico y Argumentación (10%)
+- **(100 pts) Muy buen desempeño:** Utiliza lenguaje técnico preciso, con argumentación sólida respaldada en ejemplos o evidencia clara.
+- **(80 pts) Buen desempeño:** Utiliza lenguaje técnico adecuado y presenta argumentos bien fundamentados en general.
+- **(60 pts) Desempeño aceptable:** Utiliza lenguaje técnico básico y presenta argumentos con escaso respaldo.
+- **(30 pts) Desempeño incipiente:** Utiliza lenguaje poco técnico o argumentos débiles y poco claros.
+- **(0 pts) No logrado:** No utiliza lenguaje técnico ni presenta argumentos válidos.
+`;
+
 export const PREDEFINED_RUBRICS = [
   { name: 'Proyecto ML con Kedro', content: KEDRO_RUBRIC },
   { name: 'Solución con LLM y RAG', content: RAG_LLM_RUBRIC },
+  { name: 'Desarrollo de Agente Funcional', content: AGENT_FUNCIONAL_RUBRIC },
 ];
 
 export const DEFAULT_RUBRIC = PREDEFINED_RUBRICS[0].content;

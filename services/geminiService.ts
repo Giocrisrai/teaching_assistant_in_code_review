@@ -180,15 +180,16 @@ Tu tarea es analizar los **resúmenes** del código de un repositorio y evaluarl
 **Instrucciones Clave:**
 1.  **Rúbrica Estricta:** Basa TODA tu evaluación en los criterios y puntajes definidos en la rúbrica.
 2.  **Principio de Verificación (¡Muy Importante!):** Tu evaluación debe basarse en la **evidencia de implementación** presente en los resúmenes del código fuente (ej. archivos \`.py\`). Los documentos descriptivos (como README.md o notebooks con mucho texto) son importantes, pero **no sustituyen al código**. Si un proyecto describe funcionalidades complejas en su documentación pero los resúmenes de código no muestran una implementación correspondiente, **debes penalizar severamente** en los criterios relevantes. Corrobora siempre las afirmaciones con los hechos del código.
-3.  **Feedback Basado en Resúmenes:** Tu feedback debe ser concreto, haciendo referencia a la información contenida en los resúmenes. Si un resumen menciona un archivo específico (ej. \`conf/base/parameters.yml\`), úsalo en tu justificación.
-4.  **Justificación Cuantitativa:** Justifica cada puntaje. Si asignas 80/100, explica qué faltó para alcanzar el 100 según la información disponible.
-5.  **Formato JSON Obligatorio:** Tu respuesta DEBE ser un único objeto JSON válido. No incluyas texto, markdown, o "backticks" (como \`\`\`json) alrededor del objeto JSON.
-6.  **Cálculo de Puntajes:**
+3.  **Evaluación Evolutiva:** Ten en cuenta que el proyecto puede ser una continuación de una entrega anterior. Céntrate en evaluar el trabajo según la **rúbrica actual**. Si identificas código o conceptos de una entrega previa (por ejemplo, un sistema RAG en un proyecto sobre Agentes Funcionales), evalúa cómo se integra y evoluciona para cumplir los nuevos requisitos, en lugar de simplemente re-evaluarlo con criterios antiguos. El feedback debe ser constructivo, reconociendo el trabajo previo pero enfocándose en el cumplimiento de los objetivos de la evaluación actual.
+4.  **Feedback Basado en Resúmenes:** Tu feedback debe ser concreto, haciendo referencia a la información contenida en los resúmenes. Si un resumen menciona un archivo específico (ej. \`conf/base/parameters.yml\`), úsalo en tu justificación.
+5.  **Justificación Cuantitativa:** Justifica cada puntaje. Si asignas 80/100, explica qué faltó para alcanzar el 100 según la información disponible.
+6.  **Formato JSON Obligatorio:** Tu respuesta DEBE ser un único objeto JSON válido. No incluyas texto, markdown, o "backticks" (como \`\`\`json) alrededor del objeto JSON.
+7.  **Cálculo de Puntajes:**
     -   El 'score' para cada criterio debe estar entre 0 y 100.
     -   El 'overallScore' debe ser el promedio exacto de los 'score' de todos los criterios.
     -   La 'finalChileanGrade' se calcula como \`((overallScore / 100) * 6) + 1\`. No la redondees aquí, solo el cálculo directo.
-7.  **Análisis de Profesionalismo:** Presta especial atención a la información sobre reproducibilidad, calidad del código y seguridad mencionada en los resúmenes.
-8.  **Alerta de Seguridad:** Si se proporciona una alerta de seguridad (como la presencia de un archivo \`.env\`), DEBES mencionarla de forma prominente y crítica en el \`professionalismSummary\` y aplicar una penalización severa.
+8.  **Análisis de Profesionalismo:** Presta especial atención a la información sobre reproducibilidad, calidad del código y seguridad mencionada en los resúmenes.
+9.  **Alerta de Seguridad:** Si se proporciona una alerta de seguridad (como la presencia de un archivo \`.env\`), DEBES mencionarla de forma prominente y crítica en el \`professionalismSummary\` y aplicar una penalización severa.
 
 **Esquema JSON Requerido:**
 \`\`\`json
