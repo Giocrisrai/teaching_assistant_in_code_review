@@ -127,7 +127,7 @@ const RAG_LLM_RUBRIC = `# Rúbrica de Evaluación: Diseño de Solución con LLM 
 ## 3. IE3. Configuración de flujos RAG (10%)
 - **(100 pts) Muy buen desempeño:** Configura flujos RAG completos, integrando eficazmente recuperación de datos internos y externos con alta coherencia contextual.
 - **(80 pts) Buen desempeño:** Configura flujos RAG funcionales, incluyendo mecanismos adecuados y coherentes con el caso.
-- **(60 pts) Desempeño aceptable:** Configura flujos RAG básicos, con integración parcial o limitada de fuentes de datos.
+- **(60 pts) Desempeño aceptable:** Configura flujos RAG básicos, con integração parcial o limitada de fuentes de datos.
 - **(30 pts) Desempeño incipiente:** Configura flujos incompletos o incoherentes con el contexto organizacional.
 - **(10 pts) No logrado:** No configura flujos RAG o lo hace de forma incorrecta.
 
@@ -146,7 +146,7 @@ const RAG_LLM_RUBRIC = `# Rúbrica de Evaluación: Diseño de Solución con LLM 
 - **(10 pts) No logrado:** No planifica una arquitectura funcional.
 
 ## 6. IE6. Diagrama de la arquitectura de solución (10%)
-- **(100 pts) Muy buen desempeño:** Construye un diagrama claro, detallado y bien estructurado, con representación precisa de componentes e integración.
+- **(100 pts) Muy buen desempeño:** Construye un diagrama claro, detallado y bien estructurado, con representación precisa de componentes e integração.
 - **(80 pts) Buen desempeño:** Construye un diagrama comprensible y funcional, con buena representación de los elementos.
 - **(60 pts) Desempeño aceptable:** Construye un diagrama con componentes básicos y organización general.
 - **(30 pts) Desempeño incipiente:** Construye un diagrama confuso o incompleto, con errores de representación.
@@ -247,10 +247,297 @@ const AGENT_FUNCIONAL_RUBRIC = `# Rúbrica de Evaluación: Desarrollo de un Agen
 - **(0 pts) No logrado:** No utiliza lenguaje técnico ni presenta argumentos válidos.
 `;
 
+const HACKATHON_SALUD_RUBRIC = `# Rúbrica de Evaluación: Hackathon Desafío Salud - Coach de Bienestar Preventivo
+
+## A. Rigor técnico ML (Total 30 pts)
+- **Descripción:** Evalúa la calidad, robustez y explicabilidad del modelo de Machine Learning.
+- **Sub-criterios:**
+  - **A1. Métrica principal (AUROC en test) (12 pts):**
+    - 12 pts: AUROC > 0.80
+    - 10 pts: AUROC 0.75-0.79
+    - 7 pts: AUROC 0.70-0.74
+    - 4 pts: AUROC < 0.70
+  - **A2. Calibración (Brier Score en test) (6 pts):**
+    - 6 pts: Brier < 0.125
+    - 3 pts: Brier 0.13-0.15
+    - 1 pt: Brier 0.16-0.18
+    - 0 pts: Brier > 0.18
+  - **A3. Validación temporal & anti-fuga (6 pts):**
+    - 6 pts: Cumple split por ciclo + sin fuga de datos
+    - 4 pts: Dudas menores en implementación
+    - 2 pts: Errores de fuga o validación
+  - **A4. Explicabilidad (drivers locales) (6 pts):**
+    - 6 pts: Drivers claros, consistentes con modelo y caso
+    - 4 pts: Explicaciones parciales
+    - 2 pts: Explicaciones confusas o incorrectas
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 4 sub-criterios. 100 pts es un desempeño perfecto en todos.
+
+## B. LLMs, RAG y guardrails (Total 25 pts)
+- **Descripción:** Evalúa la correcta implementación y funcionamiento de los componentes de lenguaje natural.
+- **Sub-criterios:**
+  - **B1. Extractor NL->JSON con validación (8 pts):**
+    - 8 pts: 100% JSON válido + rangos/unidades correctos
+    - 6 pts: Leves correcciones necesarias
+    - 3 pts: Errores frecuentes de validación
+  - **B2. Coach con RAG y citas válidas (9 pts):**
+    - 9 pts: Todas las recomendaciones con fuentes de /kb
+    - 7 pts: Alguna omisión menor de citas
+    - 4 pts: Alucinaciones o citas inválidas
+  - **B3. Safety & Derivación (8 pts):**
+    - 8 pts: Umbrales correctos + lenguaje no-diagnóstico + derivación implementada
+    - 5 pts: Implementación parcial
+    - 2 pts: Ausente o inadecuado
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
+
+## C. Producto y UX (Total 25 pts)
+- **Descripción:** Evalúa la calidad, funcionalidad y experiencia de usuario de la aplicación final.
+- **Sub-criterios:**
+  - **C1. App funcional y fluida (10 pts):**
+    - 10 pts: Formulario claro + feedback inmediato + manejo de errores + deploy en Spaces
+    - 7 pts: Funcional con problemas menores
+    - 4 pts: Funcionalidad básica limitada
+  - **C2. Export & sharing (5 pts):**
+    - 5 pts: PDF descargable + enlace compartible funcional
+    - 3 pts: Solo una funcionalidad implementada
+    - 1 pt: Implementación deficiente
+  - **C3. Claridad para el usuario (10 pts):**
+    - 10 pts: Mensajes simples + inclusivos + explicación clara del score + próximos pasos
+    - 7 pts: Claridad adecuada con mejoras menores
+    - 4 pts: Comunicación confusa o incompleta
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
+
+## D. Reproducibilidad y buenas prácticas (Total 15 pts)
+- **Descripción:** Evalúa la calidad del código, la documentación y la capacidad de reproducir los resultados.
+- **Sub-criterios:**
+  - **D1. Repo & scripts (6 pts):**
+    - 6 pts: requirements.txt/env + Makefile o scripts + semillas fijadas + rutas limpias
+    - 4 pts: Reproducible con ajustes menores
+    - 2 pts: Dificultades significativas para reproducir
+  - **D2. Documentación (5 pts):**
+    - 5 pts: README claro con pasos + supuestos + estructura de datos
+    - 3 pts: Documentación básica funcional
+    - 1 pt: Documentación insuficiente
+  - **D3. Métricas por subgrupos (fairness) (4 pts):**
+    - 4 pts: Reporte completo por sexo/edad/grupo étnico + análisis de gap + mitigaciones
+    - 2 pts: Análisis parcial de equidad
+    - 1 pt: Análisis superficial o ausente
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
+
+## E. Presentación y Pitch Final (Total 15 pts)
+- **Descripción:** Evalúa la calidad de la presentación final del proyecto. Este criterio se basa en el informe técnico y otros documentos que puedan simular una presentación (ej. un .pptx o un README con sección de presentación).
+- **Sub-criterios:**
+  - **E1. Storytelling e impacto (6 pts):**
+    - 6 pts: Narrativa clara + problema bien definido + impacto cuantificado + propuesta de valor convincente
+    - 4 pts: Storytelling adecuado con elementos menores faltantes
+    - 2 pts: Presentación confusa o impacto poco claro
+  - **E2. Comunicación técnica (5 pts):**
+    - 5 pts: Explica conceptos complejos de forma accesible + demuestra comprensión profunda + responde preguntas técnicas con precisión
+    - 3 pts: Comunicación técnica adecuada con algunas dificultades
+    - 1 pt: Dificultades significativas para explicar aspectos técnicos
+  - **E3. Formato y tiempo (4 pts):**
+    - 4 pts: Respeta tiempo límite + estructura clara + uso efectivo de herramientas visuales + demo fluida
+    - 2 pts: Cumple requisitos básicos con problemas menores
+    - 1 pt: Incumplimiento significativo de formato o tiempo
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
+`;
+
+const HACKATHON_EDUCACION_RUBRIC = `# Rúbrica de Evaluación: Hackathon Desafío Educación - Tutor Virtual Adaptativo
+
+## A. Rigor técnico ML (Total 30 pts)
+- **Descripción:** Evalúa la calidad, robustez y explicabilidad del modelo de Machine Learning para predecir el riesgo de deserción.
+- **Sub-criterios:**
+  - **A1. Métrica principal (AUROC en test) (12 pts):**
+    - 12 pts: AUROC > 0.80
+    - 10 pts: AUROC 0.75-0.79
+    - 7 pts: AUROC 0.70-0.74
+    - 4 pts: AUROC < 0.70
+  - **A2. Calibración (Brier Score en test) (6 pts):**
+    - 6 pts: Brier < 0.125
+    - 3 pts: Brier 0.13-0.15
+    - 1 pt: Brier 0.16-0.18
+    - 0 pts: Brier > 0.18
+  - **A3. Validación temporal & anti-fuga (6 pts):**
+    - 6 pts: Cumple split por ciclo + sin fuga de datos
+    - 4 pts: Dudas menores en implementación
+    - 2 pts: Errores de fuga o validación
+  - **A4. Explicabilidad (drivers locales) (6 pts):**
+    - 6 pts: Drivers claros, consistentes con modelo y caso
+    - 4 pts: Explicaciones parciales
+    - 2 pts: Explicaciones confusas o incorrectas
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 4 sub-criterios. 100 pts es un desempeño perfecto en todos.
+
+## B. LLMs, RAG y guardrails (Total 25 pts)
+- **Descripción:** Evalúa la correcta implementación y funcionamiento de los componentes de lenguaje natural para el tutor virtual.
+- **Sub-criterios:**
+  - **B1. Extractor NL->JSON con validación (8 pts):**
+    - 8 pts: 100% JSON válido + rangos/unidades correctos
+    - 6 pts: Leves correcciones necesarias
+    - 3 pts: Errores frecuentes de validación
+  - **B2. Coach con RAG y citas válidas (9 pts):**
+    - 9 pts: Todas las recomendaciones con fuentes de /kb
+    - 7 pts: Alguna omisión menor de citas
+    - 4 pts: Alucinaciones o citas inválidas
+  - **B3. Safety & Derivación (8 pts):**
+    - 8 pts: Umbrales correctos + lenguaje no-diagnóstico + derivación implementada
+    - 5 pts: Implementación parcial
+    - 2 pts: Ausente o inadecuado
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
+
+## C. Producto y UX (Total 25 pts)
+- **Descripción:** Evalúa la calidad, funcionalidad y experiencia de usuario de la aplicación final.
+- **Sub-criterios:**
+  - **C1. App funcional y fluida (10 pts):**
+    - 10 pts: Formulario claro + feedback inmediato + manejo de errores + deploy en Spaces
+    - 7 pts: Funcional con problemas menores
+    - 4 pts: Funcionalidad básica limitada
+  - **C2. Export & sharing (5 pts):**
+    - 5 pts: PDF descargable + enlace compartible funcional
+    - 3 pts: Solo una funcionalidad implementada
+    - 1 pt: Implementación deficiente
+  - **C3. Claridad para el usuario (10 pts):**
+    - 10 pts: Mensajes simples + inclusivos + explicación clara del score + próximos pasos
+    - 7 pts: Claridad adecuada con mejoras menores
+    - 4 pts: Comunicación confusa o incompleta
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
+
+## D. Reproducibilidad y buenas prácticas (Total 15 pts)
+- **Descripción:** Evalúa la calidad del código, la documentación y la capacidad de reproducir los resultados.
+- **Sub-criterios:**
+  - **D1. Repo & scripts (6 pts):**
+    - 6 pts: requirements.txt/env + Makefile o scripts + semillas fijadas + rutas limpias
+    - 4 pts: Reproducible con ajustes menores
+    - 2 pts: Dificultades significativas para reproducir
+  - **D2. Documentación (5 pts):**
+    - 5 pts: README claro con pasos + supuestos + estructura de datos
+    - 3 pts: Documentación básica funcional
+    - 1 pt: Documentación insuficiente
+  - **D3. Métricas por subgrupos (fairness) (4 pts):**
+    - 4 pts: Reporte completo por sexo/edad/grupo étnico + análisis de gap + mitigaciones
+    - 2 pts: Análisis parcial de equidad
+    - 1 pt: Análisis superficial o ausente
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
+
+## E. Presentación y Pitch Final (Total 15 pts)
+- **Descripción:** Evalúa la calidad de la presentación final del proyecto. Este criterio se basa en el informe técnico y otros documentos que puedan simular una presentación (ej. un .pptx o un README con sección de presentación).
+- **Sub-criterios:**
+  - **E1. Storytelling e impacto (6 pts):**
+    - 6 pts: Narrativa clara + problema bien definido + impacto cuantificado + propuesta de valor convincente
+    - 4 pts: Storytelling adecuado con elementos menores faltantes
+    - 2 pts: Presentación confusa o impacto poco claro
+  - **E2. Comunicación técnica (5 pts):**
+    - 5 pts: Explica conceptos complejos de forma accesible + demuestra comprensión profunda + responde preguntas técnicas con precisión
+    - 3 pts: Comunicación técnica adecuada con algunas dificultades
+    - 1 pt: Dificultades significativas para explicar aspectos técnicos
+  - **E3. Formato y tiempo (4 pts):**
+    - 4 pts: Respeta tiempo límite + estructura clara + uso efectivo de herramientas visuales + demo fluida
+    - 2 pts: Cumple requisitos básicos con problemas menores
+    - 1 pt: Incumplimiento significativo de formato o tiempo
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
+`;
+
+const HACKATHON_CIUDADES_RUBRIC = `# Rúbrica de Evaluación: Hackathon Desafío Ciudades - Optimizador de Rutas
+
+## A. Rigor técnico ML (Total 30 pts)
+- **Descripción:** Evalúa la calidad, robustez y explicabilidad del modelo de Machine Learning para predecir la probabilidad de accidentes.
+- **Sub-criterios:**
+  - **A1. Métrica principal (AUROC en test) (12 pts):**
+    - 12 pts: AUROC > 0.80
+    - 10 pts: AUROC 0.75-0.79
+    - 7 pts: AUROC 0.70-0.74
+    - 4 pts: AUROC < 0.70
+  - **A2. Calibración (Brier Score en test) (6 pts):**
+    - 6 pts: Brier < 0.125
+    - 3 pts: Brier 0.13-0.15
+    - 1 pt: Brier 0.16-0.18
+    - 0 pts: Brier > 0.18
+  - **A3. Validación temporal & anti-fuga (6 pts):**
+    - 6 pts: Cumple split por ciclo + sin fuga de datos
+    - 4 pts: Dudas menores en implementación
+    - 2 pts: Errores de fuga o validación
+  - **A4. Explicabilidad (drivers locales) (6 pts):**
+    - 6 pts: Drivers claros, consistentes con modelo y caso
+    - 4 pts: Explicaciones parciales
+    - 2 pts: Explicaciones confusas o incorrectas
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 4 sub-criterios. 100 pts es un desempeño perfecto en todos.
+
+## B. LLMs, RAG y guardrails (Total 25 pts)
+- **Descripción:** Evalúa la correcta implementación y funcionamiento de los componentes de lenguaje natural para el optimizador de rutas.
+- **Sub-criterios:**
+  - **B1. Extractor NL->JSON con validación (8 pts):**
+    - 8 pts: 100% JSON válido + rangos/unidades correctos
+    - 6 pts: Leves correcciones necesarias
+    - 3 pts: Errores frecuentes de validación
+  - **B2. Coach con RAG y citas válidas (9 pts):**
+    - 9 pts: Todas las recomendaciones con fuentes de /kb
+    - 7 pts: Alguna omisión menor de citas
+    - 4 pts: Alucinaciones o citas inválidas
+  - **B3. Safety & Derivación (8 pts):**
+    - 8 pts: Umbrales correctos + lenguaje no-diagnóstico + derivación implementada
+    - 5 pts: Implementación parcial
+    - 2 pts: Ausente o inadecuado
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
+
+## C. Producto y UX (Total 25 pts)
+- **Descripción:** Evalúa la calidad, funcionalidad y experiencia de usuario de la aplicación final.
+- **Sub-criterios:**
+  - **C1. App funcional y fluida (10 pts):**
+    - 10 pts: Formulario claro + feedback inmediato + manejo de errores + deploy en Spaces
+    - 7 pts: Funcional con problemas menores
+    - 4 pts: Funcionalidad básica limitada
+  - **C2. Export & sharing (5 pts):**
+    - 5 pts: PDF descargable + enlace compartible funcional
+    - 3 pts: Solo una funcionalidad implementada
+    - 1 pt: Implementación deficiente
+  - **C3. Claridad para el usuario (10 pts):**
+    - 10 pts: Mensajes simples + inclusivos + explicación clara del score + próximos pasos
+    - 7 pts: Claridad adecuada con mejoras menores
+    - 4 pts: Comunicación confusa o incompleta
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
+
+## D. Reproducibilidad y buenas prácticas (Total 15 pts)
+- **Descripción:** Evalúa la calidad del código, la documentación y la capacidad de reproducir los resultados.
+- **Sub-criterios:**
+  - **D1. Repo & scripts (6 pts):**
+    - 6 pts: requirements.txt/env + Makefile o scripts + semillas fijadas + rutas limpias
+    - 4 pts: Reproducible con ajustes menores
+    - 2 pts: Dificultades significativas para reproducir
+  - **D2. Documentación (5 pts):**
+    - 5 pts: README claro con pasos + supuestos + estructura de datos
+    - 3 pts: Documentación básica funcional
+    - 1 pt: Documentación insuficiente
+  - **D3. Métricas (4 pts):**
+    - 4 pts: Reporte completo por métricas relevantes (reducción de accidentes, etc.) + análisis de gap + mitigaciones
+    - 2 pts: Análisis parcial de métricas
+    - 1 pt: Análisis superficial o ausente
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
+
+## E. Presentación y Pitch Final (Total 15 pts)
+- **Descripción:** Evalúa la calidad de la presentación final del proyecto. Este criterio se basa en el informe técnico y otros documentos que puedan simular una presentación (ej. un .pptx o un README con sección de presentación).
+- **Sub-criterios:**
+  - **E1. Storytelling e impacto (6 pts):**
+    - 6 pts: Narrativa clara + problema bien definido + impacto cuantificado + propuesta de valor convincente
+    - 4 pts: Storytelling adecuado con elementos menores faltantes
+    - 2 pts: Presentación confusa o impacto poco claro
+  - **E2. Comunicación técnica (5 pts):**
+    - 5 pts: Explica conceptos complejos de forma accesible + demuestra comprensión profunda + responde preguntas técnicas con precisión
+    - 3 pts: Comunicación técnica adecuada con algunas dificultades
+    - 1 pt: Dificultades significativas para explicar aspectos técnicos
+  - **E3. Formato y tiempo (4 pts):**
+    - 4 pts: Respeta tiempo límite + estructura clara + uso efectivo de herramientas visuales + demo fluida
+    - 2 pts: Cumple requisitos básicos con problemas menores
+    - 1 pt: Incumplimiento significativo de formato o tiempo
+- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
+`;
+
+
 export const PREDEFINED_RUBRICS = [
+  // FIX: Corrected typo from KRO_RUBRIC to KEDRO_RUBRIC
   { name: 'Proyecto ML con Kedro', content: KEDRO_RUBRIC },
   { name: 'Solución con LLM y RAG', content: RAG_LLM_RUBRIC },
   { name: 'Desarrollo de Agente Funcional', content: AGENT_FUNCIONAL_RUBRIC },
+  { name: 'Hackathon: Desafío Salud', content: HACKATHON_SALUD_RUBRIC },
+  { name: 'Hackathon: Desafío Educación', content: HACKATHON_EDUCACION_RUBRIC },
+  { name: 'Hackathon: Desafío Ciudades', content: HACKATHON_CIUDADES_RUBRIC },
 ];
 
 export const DEFAULT_RUBRIC = PREDEFINED_RUBRICS[0].content;

@@ -1,8 +1,9 @@
-import type { GitHubFile, JupyterNotebook, NotebookCell } from '../types';
+import type { GitHubFile } from '../types';
 import { base64Decode } from '../utils';
 import { RELEVANT_EXTENSIONS, IGNORED_PATTERNS } from '../constants';
 import { extractTextFromPdf } from '../utils/pdfParser';
 import { extractTextFromOfficeXml } from '../utils/officeParser';
+import { parseAndFormatNotebook } from '../utils/notebookParser';
 
 const FILE_LIMIT = 500; // Max number of files to process before triggering AI triage.
 
@@ -41,36 +42,6 @@ function parseRepoUrl(url: string): { owner: string; repo: string; branch: strin
   } catch (error) {
     console.error("Invalid URL:", error);
     return null;
-  }
-}
-
-function parseAndFormatNotebook(rawContent: string): string {
-  try {
-    const notebook: JupyterNotebook = JSON.parse(rawContent);
-    if (!notebook.cells || !Array.isArray(notebook.cells)) {
-      return "Error: Formato de notebook inválido (no se encontró el arreglo 'cells').\n\n" + rawContent;
-    }
-
-    let formattedContent = '';
-    notebook.cells.forEach((cell: NotebookCell, index: number) => {
-      const source = Array.isArray(cell.source) ? cell.source.join('') : String(cell.source);
-      
-      if (cell.cell_type === 'markdown') {
-        formattedContent += `\n--- Celda de Markdown ${index + 1} ---\n`;
-        formattedContent += source;
-        formattedContent += `\n--- Fin Celda de Markdown ${index + 1} ---\n`;
-      } else if (cell.cell_type === 'code') {
-        formattedContent += `\n--- Celda de Código ${index + 1} ---\n`;
-        formattedContent += '```python\n';
-        formattedContent += source;
-        formattedContent += '\n```';
-        formattedContent += `\n--- Fin Celda de Código ${index + 1} ---\n`;
-      }
-    });
-    return formattedContent;
-  } catch (e) {
-    console.error("Error al parsear el contenido del notebook:", e);
-    return "Error: No se pudo parsear el JSON del notebook. Mostrando contenido en crudo.\n\n" + rawContent;
   }
 }
 

@@ -3,6 +3,7 @@ import type { GitHubFile } from '../types';
 import { RELEVANT_EXTENSIONS, IGNORED_PATTERNS } from '../constants';
 import { extractTextFromPdf } from '../utils/pdfParser';
 import { extractTextFromOfficeXml } from '../utils/officeParser';
+import { parseAndFormatNotebook } from '../utils/notebookParser';
 
 /**
  * Extracts relevant files and their content from a user-uploaded ZIP file.
@@ -48,6 +49,9 @@ export async function extractFilesFromZip(zipFile: File): Promise<{ files: GitHu
                 return { path: zipEntry.name, content: textContent };
             } else {
                 const content = await zipEntry.async('string');
+                if (lowerName.endsWith('.ipynb')) {
+                    return { path: zipEntry.name, content: parseAndFormatNotebook(content) };
+                }
                 return { path: zipEntry.name, content: content };
             }
         } catch (err) {

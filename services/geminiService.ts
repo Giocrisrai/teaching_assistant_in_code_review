@@ -172,10 +172,36 @@ export async function evaluateRepoWithGemini(
 
   // Stage 2: Perform the final evaluation using the collected summaries
   onProgress('Resúmenes completos. Realizando la evaluación final...');
+  
+  let contextSpecificInstruction = '';
+  const isHackathonSalud = rubric.includes("Hackathon Desafío Salud");
+  const isHackathonEducacion = rubric.includes("Hackathon Desafío Educación");
+  const isHackathonCiudades = rubric.includes("Hackathon Desafío Ciudades");
+
+  if (isHackathonSalud || isHackathonEducacion || isHackathonCiudades) {
+      let hackathonInstructions = `
+**Contexto Adicional de Evaluación (¡Muy Importante!):**
+Estás evaluando un proyecto de un **Hackathon**. Este es un evento de corta duración (27 horas). Por lo tanto:
+1.  **Enfoque en Entregables Clave:** No esperes frameworks complejos como Kedro. La evaluación debe centrarse en los entregables específicos del hackathon: el modelo de ML, la API (\`FastAPI\`), la app de demo (\`Streamlit\`/\`Gradio\`), el sistema RAG y la reproducibilidad (\`requirements.txt\`, semillas).
+2.  **Importancia de los Notebooks:** Los Jupyter Notebooks (\`.ipynb\`) son cruciales. Es muy probable que contengan el trabajo principal de entrenamiento de modelos, análisis exploratorio (EDA) y experimentación. Analiza su contenido cuidadosamente como evidencia principal del trabajo técnico.
+3.  **Adherencia a la Rúbrica del Hackathon:** Sigue estrictamente las 5 categorías de la rúbrica del hackathon (Rigor técnico ML, LLMs, Producto y UX, etc.). La evaluación debe reflejar la naturaleza competitiva y rápida del evento.
+4.  **Verificación Pragmática:** El "Principio de Verificación" sigue siendo válido, pero la evidencia de implementación puede estar directamente en las celdas de un notebook en lugar de en una estructura de producción modular. Valida que el código *existe* y *funciona* según lo descrito, dondequiera que se encuentre.
+`;
+      
+      if (isHackathonSalud) {
+          hackathonInstructions += `
+5.  **Repositorio de Referencia:** Se proporcionó a los participantes un repositorio guía/starter: \`https://github.com/Giocrisrai/hackaton_duoc_2025\`. Es muy probable que la estructura del proyecto que estás evaluando sea similar o idéntica a la de este repositorio. **No penalices por similitud con este repositorio base**. En su lugar, enfócate en evaluar la calidad y originalidad de la **implementación específica** dentro de esa estructura: el código del modelo, el feature engineering, los prompts del LLM, la calidad de la app, y el análisis presentado. El valor está en cómo *usaron y mejoraron* la base, no en la estructura misma.
+`;
+      }
+      contextSpecificInstruction = hackathonInstructions;
+  }
+
 
   const systemInstruction = `Eres un experto en ingeniería de software y ciencia de datos, actuando como un asistente de profesor riguroso, justo y constructivo para evaluar proyectos universitarios.
 
 Tu tarea es analizar los **resúmenes** del código de un repositorio y evaluarlo estrictamente según la rúbrica proporcionada. No tienes acceso al código completo, así que basa tu evaluación únicamente en los resúmenes.
+
+${contextSpecificInstruction}
 
 **Instrucciones Clave:**
 1.  **Rúbrica Estricta:** Basa TODA tu evaluación en los criterios y puntajes definidos en la rúbrica.

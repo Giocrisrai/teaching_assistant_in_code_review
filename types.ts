@@ -21,7 +21,7 @@ export interface EvaluationResult {
   finalChileanGrade: number;
 }
 
-// For parsing Jupyter notebooks in githubService
+// For parsing Jupyter notebooks
 export interface NotebookCell {
   cell_type: 'markdown' | 'code';
   source: string[] | string;
