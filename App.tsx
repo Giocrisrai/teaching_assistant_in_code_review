@@ -10,7 +10,7 @@ import { InfoIcon } from './components/icons';
 import type { AnalysisInput, AnalysisSource } from './types';
 
 function App() {
-  const [analysisSource, setAnalysisSource] = useState<AnalysisSource>('github');
+  const [analysisSource, setAnalysisSource] = useState<AnalysisSource>('zip');
   const [repoUrl, setRepoUrl] = useState<string>('');
   const [githubToken, setGithubToken] = useState<string>('');
   const [archiveFile, setArchiveFile] = useState<File | null>(null);

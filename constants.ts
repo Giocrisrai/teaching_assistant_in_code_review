@@ -108,6 +108,90 @@ const KEDRO_RUBRIC = `# Rúbrica de Evaluación: Proyecto Machine Learning con K
 - **(0 pts) No logrado:** No cumple requisitos mínimos.
 `;
 
+const ML_PIPELINES_DVC_AIRFLOW_RUBRIC = `# Rúbrica de Evaluación: Pipelines de ML con DVC, Airflow y Docker
+
+## 1. Integración de Pipelines Kedro (8%)
+- **(100 pts) Muy buen desempeño:** Ambos pipelines (clasificación y regresión) son modulares, ejecutables sin errores y siguen las mejores prácticas de Kedro.
+- **(80 pts) Buen desempeño:** Pipelines funcionales y bien estructurados, con pequeños detalles a mejorar.
+- **(60 pts) Desempeño aceptable:** Pipelines básicos operativos, pero con problemas de modularidad o claridad.
+- **(40 pts) Desempeño incipiente:** Pipelines con errores de ejecución o mal estructurados.
+- **(20 pts) Desempeño insuficiente:** No se implementan pipelines funcionales en Kedro.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 2. DVC (datos, features, modelos, métricas) (7%)
+- **(100 pts) Muy buen desempeño:** Uso completo de DVC. \`dvc.yaml\` define stages claros. Todos los artefactos (datos, features, modelos, métricas) están correctamente versionados y son reproducibles.
+- **(80 pts) Buen desempeño:** DVC se usa correctamente para versionar los artefactos principales.
+- **(60 pts) Desempeño aceptable:** Uso básico de DVC, pero faltan stages o algunos artefactos no están versionados.
+- **(40 pts) Desempeño incipiente:** \`dvc.yaml\` mal configurado o uso incorrecto de los comandos de DVC.
+- **(20 pts) Desempeño insuficiente:** No se utiliza DVC o su uso es meramente testimonial.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 3. Airflow (DAG orquestado) (7%)
+- **(100 pts) Muy buen desempeño:** Un DAG de Airflow orquesta la ejecución de ambos pipelines (clasificación y regresión) de forma secuencial o paralela, y consolida los resultados de forma exitosa. El DAG es robusto y claro.
+- **(80 pts) Buen desempeño:** DAG funcional que ejecuta ambos pipelines, con pequeños detalles de mejora en la consolidación o logs.
+- **(60 pts) Desempeño aceptable:** DAG básico que logra ejecutar los pipelines, pero con problemas de dependencias o sin consolidación de resultados.
+- **(40 pts) Desempeño incipiente:** El DAG tiene errores y no logra ejecutar los pipelines de forma fiable.
+- **(20 pts) Desempeño insuficiente:** No se implementa un DAG de Airflow.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 4. Docker (portabilidad) (7%)
+- **(100 pts) Muy buen desempeño:** Imagen de Docker funcional, reproducible y optimizada. Incluye instrucciones claras (\`README.md\`) para construir y ejecutar el entorno completo (Kedro, Airflow, DVC).
+- **(80 pts) Buen desempeño:** Imagen funcional y reproducible con instrucciones adecuadas.
+- **(60 pts) Desempeño aceptable:** La imagen se construye y ejecuta, pero no es eficiente o las instrucciones son poco claras.
+- **(40 pts) Desempeño incipiente:** Errores al construir o ejecutar la imagen de Docker.
+- **(20 pts) Desempeño insuficiente:** No se proporciona un \`Dockerfile\` funcional.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 5. Métricas y visualizaciones (10%)
+- **(100 pts) Muy buen desempeño:** Se utilizan métricas apropiadas para clasificación (ej. AUROC, F1-score, Confusion Matrix) y regresión (ej. R2, RMSE, MAE). Se presenta una tabla comparativa clara y visualizaciones (gráficos) que facilitan el análisis de resultados de todos los modelos.
+- **(80 pts) Buen desempeño:** Se usan métricas correctas y se presenta una tabla comparativa funcional.
+- **(60 pts) Desempeño aceptable:** Se usan métricas básicas y la comparación es limitada.
+- **(40 pts) Desempeño incipiente:** Métricas incorrectas o mal interpretadas.
+- **(20 pts) Desempeño insuficiente:** No se reportan métricas de evaluación.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 6. Cobertura de modelos + Tuning + CV (24%)
+- **(100 pts) Muy buen desempeño:** Se implementan y comparan 5 o más modelos para clasificación Y 5 o más para regresión. Se realiza búsqueda de hiperparámetros con GridSearchCV y validación cruzada (k>=5) para los mejores modelos. La tabla comparativa incluye media y desviación estándar de las métricas.
+- **(80 pts) Buen desempeño:** Se cumple con el número de modelos y se aplica GridSearch/CV correctamente.
+- **(60 pts) Desempeño aceptable:** Se implementan menos de 5 modelos por tipo, o la búsqueda de hiperparámetros es superficial.
+- **(40 pts) Desempeño incipiente:** No se implementa una variedad de modelos o no se realiza tuning.
+- **(20 pts) Desempeño insuficiente:** Se implementa un solo modelo básico sin validación.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 7. Reproducibilidad (Git+DVC+Docker) (7%)
+- **(100 pts) Muy buen desempeño:** El proyecto es 100% reproducible. La combinación de Git, DVC y Docker permite a un tercero clonar el repositorio y ejecutar todo el flujo de trabajo de forma determinística, obteniendo los mismos resultados.
+- **(80 pts) Buen desempeño:** El proyecto es reproducible con instrucciones claras, aunque requiera pequeños ajustes manuales.
+- **(60 pts) Desempeño aceptable:** La reproducibilidad es parcial, con algunos pasos que fallan o no están documentados.
+- **(40 pts) Desempeño incipiente:** Dificultades significativas para reproducir los resultados.
+- **(20 pts) Desempeño insuficiente:** El proyecto no es reproducible.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 8. Documentación técnica (5%)
+- **(100 pts) Muy buen desempeño:** El \`README.md\` es excepcional: explica la arquitectura del proyecto (Kedro, DVC, Airflow, Docker), el propósito de los pipelines, y proporciona instrucciones detalladas y claras para la instalación, ejecución y reproducción de los experimentos.
+- **(80 pts) Buen desempeño:** \`README.md\` claro con instrucciones y una descripción adecuada.
+- **(60 pts) Desempeño aceptable:** Documentación básica que permite entender el proyecto pero carece de detalles.
+- **(40 pts) Desempeño incipiente:** Documentación escasa o confusa.
+- **(20 pts) Desempeño insuficiente:** Sin \`README.md\` o documentación técnica.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 9. Reporte de experimentos (5%)
+- **(100 pts) Muy buen desempeño:** Se presenta un reporte claro (en un notebook o \`README.md\`) que incluye una comparación final de los modelos, una discusión profunda de los resultados obtenidos, y conclusiones bien fundamentadas sobre qué modelo es el mejor para cada tarea y por qué.
+- **(80 pts) Buen desempeño:** Reporte funcional con comparación y conclusiones adecuadas.
+- **(60 pts) Desempeño aceptable:** Reporte básico con resultados pero poca discusión o análisis.
+- **(40 pts) Desempeño incipiente:** Reporte confuso o incompleto.
+- **(20 pts) Desempeño insuficiente:** No se presenta un reporte de los experimentos.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+
+## 10. Defensa técnica (oral) (20%)
+- **(100 pts) Muy buen desempeño:** Explicación oral clara, concisa y profunda del flujo de trabajo completo (Kedro-Airflow-DVC-Docker). Demuestra dominio técnico y responde a las preguntas con solvencia.
+- **(80 pts) Buen desempeño:** Buena explicación y respuestas correctas a las preguntas.
+- **(60 pts) Desempeño aceptable:** Explicación básica con algunas imprecisiones.
+- **(40 pts) Desempeño incipiente:** Explicación confusa o incapacidad para responder preguntas técnicas.
+- **(20 pts) Desempeño insuficiente:** No presenta defensa técnica.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+- **NOTA PARA IA:** Este criterio se evalúa de forma externa y no puede ser medido a partir del código. **Asigna un puntaje de 0** y en el campo de 'feedback' escribe exactamente: "Este criterio se evalúa de forma oral y no puede ser calificado automáticamente. El puntaje debe ser ajustado manualmente por el evaluador."
+`;
+
 const RAG_LLM_RUBRIC = `# Rúbrica de Evaluación: Diseño de Solución con LLM y RAG
 
 ## 1. IE1. Diseño del proyecto de agente de IA (15%)
@@ -322,29 +406,12 @@ const HACKATHON_SALUD_RUBRIC = `# Rúbrica de Evaluación: Hackathon Desafío Sa
     - 2 pts: Análisis parcial de equidad
     - 1 pt: Análisis superficial o ausente
 - **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
-
-## E. Presentación y Pitch Final (Total 15 pts)
-- **Descripción:** Evalúa la calidad de la presentación final del proyecto. Este criterio se basa en el informe técnico y otros documentos que puedan simular una presentación (ej. un .pptx o un README con sección de presentación).
-- **Sub-criterios:**
-  - **E1. Storytelling e impacto (6 pts):**
-    - 6 pts: Narrativa clara + problema bien definido + impacto cuantificado + propuesta de valor convincente
-    - 4 pts: Storytelling adecuado con elementos menores faltantes
-    - 2 pts: Presentación confusa o impacto poco claro
-  - **E2. Comunicación técnica (5 pts):**
-    - 5 pts: Explica conceptos complejos de forma accesible + demuestra comprensión profunda + responde preguntas técnicas con precisión
-    - 3 pts: Comunicación técnica adecuada con algunas dificultades
-    - 1 pt: Dificultades significativas para explicar aspectos técnicos
-  - **E3. Formato y tiempo (4 pts):**
-    - 4 pts: Respeta tiempo límite + estructura clara + uso efectivo de herramientas visuales + demo fluida
-    - 2 pts: Cumple requisitos básicos con problemas menores
-    - 1 pt: Incumplimiento significativo de formato o tiempo
-- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
 `;
 
 const HACKATHON_EDUCACION_RUBRIC = `# Rúbrica de Evaluación: Hackathon Desafío Educación - Tutor Virtual Adaptativo
 
 ## A. Rigor técnico ML (Total 30 pts)
-- **Descripción:** Evalúa la calidad, robustez y explicabilidad del modelo de Machine Learning para predecir el riesgo de deserción.
+- **Descripción:** Evalúa la calidad, robustez y explicabilidad del modelo de Machine Learning.
 - **Sub-criterios:**
   - **A1. Métrica principal (AUROC en test) (12 pts):**
     - 12 pts: AUROC > 0.80
@@ -367,7 +434,7 @@ const HACKATHON_EDUCACION_RUBRIC = `# Rúbrica de Evaluación: Hackathon Desafí
 - **Puntaje (0-100):** Se debe promediar el desempeño en los 4 sub-criterios. 100 pts es un desempeño perfecto en todos.
 
 ## B. LLMs, RAG y guardrails (Total 25 pts)
-- **Descripción:** Evalúa la correcta implementación y funcionamiento de los componentes de lenguaje natural para el tutor virtual.
+- **Descripción:** Evalúa la correcta implementación y funcionamiento de los componentes de lenguaje natural.
 - **Sub-criterios:**
   - **B1. Extractor NL->JSON con validación (8 pts):**
     - 8 pts: 100% JSON válido + rangos/unidades correctos
@@ -416,29 +483,12 @@ const HACKATHON_EDUCACION_RUBRIC = `# Rúbrica de Evaluación: Hackathon Desafí
     - 2 pts: Análisis parcial de equidad
     - 1 pt: Análisis superficial o ausente
 - **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
-
-## E. Presentación y Pitch Final (Total 15 pts)
-- **Descripción:** Evalúa la calidad de la presentación final del proyecto. Este criterio se basa en el informe técnico y otros documentos que puedan simular una presentación (ej. un .pptx o un README con sección de presentación).
-- **Sub-criterios:**
-  - **E1. Storytelling e impacto (6 pts):**
-    - 6 pts: Narrativa clara + problema bien definido + impacto cuantificado + propuesta de valor convincente
-    - 4 pts: Storytelling adecuado con elementos menores faltantes
-    - 2 pts: Presentación confusa o impacto poco claro
-  - **E2. Comunicación técnica (5 pts):**
-    - 5 pts: Explica conceptos complejos de forma accesible + demuestra comprensión profunda + responde preguntas técnicas con precisión
-    - 3 pts: Comunicación técnica adecuada con algunas dificultades
-    - 1 pt: Dificultades significativas para explicar aspectos técnicos
-  - **E3. Formato y tiempo (4 pts):**
-    - 4 pts: Respeta tiempo límite + estructura clara + uso efectivo de herramientas visuales + demo fluida
-    - 2 pts: Cumple requisitos básicos con problemas menores
-    - 1 pt: Incumplimiento significativo de formato o tiempo
-- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
 `;
 
 const HACKATHON_CIUDADES_RUBRIC = `# Rúbrica de Evaluación: Hackathon Desafío Ciudades - Optimizador de Rutas
 
 ## A. Rigor técnico ML (Total 30 pts)
-- **Descripción:** Evalúa la calidad, robustez y explicabilidad del modelo de Machine Learning para predecir la probabilidad de accidentes.
+- **Descripción:** Evalúa la calidad, robustez y explicabilidad del modelo de Machine Learning.
 - **Sub-criterios:**
   - **A1. Métrica principal (AUROC en test) (12 pts):**
     - 12 pts: AUROC > 0.80
@@ -461,7 +511,7 @@ const HACKATHON_CIUDADES_RUBRIC = `# Rúbrica de Evaluación: Hackathon Desafío
 - **Puntaje (0-100):** Se debe promediar el desempeño en los 4 sub-criterios. 100 pts es un desempeño perfecto en todos.
 
 ## B. LLMs, RAG y guardrails (Total 25 pts)
-- **Descripción:** Evalúa la correcta implementación y funcionamiento de los componentes de lenguaje natural para el optimizador de rutas.
+- **Descripción:** Evalúa la correcta implementación y funcionamiento de los componentes de lenguaje natural.
 - **Sub-criterios:**
   - **B1. Extractor NL->JSON con validación (8 pts):**
     - 8 pts: 100% JSON válido + rangos/unidades correctos
@@ -505,34 +555,17 @@ const HACKATHON_CIUDADES_RUBRIC = `# Rúbrica de Evaluación: Hackathon Desafío
     - 5 pts: README claro con pasos + supuestos + estructura de datos
     - 3 pts: Documentación básica funcional
     - 1 pt: Documentación insuficiente
-  - **D3. Métricas (4 pts):**
-    - 4 pts: Reporte completo por métricas relevantes (reducción de accidentes, etc.) + análisis de gap + mitigaciones
-    - 2 pts: Análisis parcial de métricas
+  - **D3. Métricas por subgrupos (fairness) (4 pts):**
+    - 4 pts: Reporte completo por sexo/edad/grupo étnico + análisis de gap + mitigaciones
+    - 2 pts: Análisis parcial de equidad
     - 1 pt: Análisis superficial o ausente
-- **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
-
-## E. Presentación y Pitch Final (Total 15 pts)
-- **Descripción:** Evalúa la calidad de la presentación final del proyecto. Este criterio se basa en el informe técnico y otros documentos que puedan simular una presentación (ej. un .pptx o un README con sección de presentación).
-- **Sub-criterios:**
-  - **E1. Storytelling e impacto (6 pts):**
-    - 6 pts: Narrativa clara + problema bien definido + impacto cuantificado + propuesta de valor convincente
-    - 4 pts: Storytelling adecuado con elementos menores faltantes
-    - 2 pts: Presentación confusa o impacto poco claro
-  - **E2. Comunicación técnica (5 pts):**
-    - 5 pts: Explica conceptos complejos de forma accesible + demuestra comprensión profunda + responde preguntas técnicas con precisión
-    - 3 pts: Comunicación técnica adecuada con algunas dificultades
-    - 1 pt: Dificultades significativas para explicar aspectos técnicos
-  - **E3. Formato y tiempo (4 pts):**
-    - 4 pts: Respeta tiempo límite + estructura clara + uso efectivo de herramientas visuales + demo fluida
-    - 2 pts: Cumple requisitos básicos con problemas menores
-    - 1 pt: Incumplimiento significativo de formato o tiempo
 - **Puntaje (0-100):** Se debe promediar el desempeño en los 3 sub-criterios. 100 pts es un desempeño perfecto en todos.
 `;
 
 
 export const PREDEFINED_RUBRICS = [
-  // FIX: Corrected typo from KRO_RUBRIC to KEDRO_RUBRIC
   { name: 'Proyecto ML con Kedro', content: KEDRO_RUBRIC },
+  { name: 'ML Pipelines (Kedro, DVC, Airflow)', content: ML_PIPELINES_DVC_AIRFLOW_RUBRIC },
   { name: 'Solución con LLM y RAG', content: RAG_LLM_RUBRIC },
   { name: 'Desarrollo de Agente Funcional', content: AGENT_FUNCIONAL_RUBRIC },
   { name: 'Hackathon: Desafío Salud', content: HACKATHON_SALUD_RUBRIC },

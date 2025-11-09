@@ -182,15 +182,23 @@ export async function evaluateRepoWithGemini(
       let hackathonInstructions = `
 **Contexto Adicional de Evaluación (¡Muy Importante!):**
 Estás evaluando un proyecto de un **Hackathon**. Este es un evento de corta duración (27 horas). Por lo tanto:
-1.  **Enfoque en Entregables Clave:** No esperes frameworks complejos como Kedro. La evaluación debe centrarse en los entregables específicos del hackathon: el modelo de ML, la API (\`FastAPI\`), la app de demo (\`Streamlit\`/\`Gradio\`), el sistema RAG y la reproducibilidad (\`requirements.txt\`, semillas).
+1.  **Enfoque en Entregables Clave:** No esperes un framework de producción complejo. La evaluación debe centrarse en los entregables específicos del hackathon: el modelo de ML, una **API funcional** (buscando código de frameworks como \`FastAPI\`, \`Flask\`, \`Express.js\`, etc.), una **app de demo interactiva** (buscando código de \`Streamlit\`, \`Gradio\`, \`React\`, etc.), un sistema RAG (si aplica), y la **reproducibilidad** (buscando \`requirements.txt\`, scripts de instalación, etc.).
 2.  **Importancia de los Notebooks:** Los Jupyter Notebooks (\`.ipynb\`) son cruciales. Es muy probable que contengan el trabajo principal de entrenamiento de modelos, análisis exploratorio (EDA) y experimentación. Analiza su contenido cuidadosamente como evidencia principal del trabajo técnico.
-3.  **Adherencia a la Rúbrica del Hackathon:** Sigue estrictamente las 5 categorías de la rúbrica del hackathon (Rigor técnico ML, LLMs, Producto y UX, etc.). La evaluación debe reflejar la naturaleza competitiva y rápida del evento.
+3.  **Adherencia a la Rúbrica del Hackathon:** Sigue estrictamente las categorías de la rúbrica del hackathon. La evaluación debe reflejar la naturaleza competitiva y rápida del evento.
 4.  **Verificación Pragmática:** El "Principio de Verificación" sigue siendo válido, pero la evidencia de implementación puede estar directamente en las celdas de un notebook en lugar de en una estructura de producción modular. Valida que el código *existe* y *funciona* según lo descrito, dondequiera que se encuentre.
+
+**Nivel de Rigor Elevado para Competencia:**
+*   **Validación Temporal y Anti-Fuga de Datos:** Este es un punto **crítico y no negociable**. Verifica con extremo cuidado que se esté usando una validación temporal (split por ciclo/fecha, no k-fold aleatorio). Busca cualquier indicio de fuga de datos (data leakage) entre el conjunto de entrenamiento y el de prueba. Errores en este punto deben ser penalizados con la máxima severidad en el criterio 'A3. Validación temporal & anti-fuga'.
+*   **Funcionalidad Demostrable:** No asumas que el código funciona. Si la rúbrica pide una API con un endpoint \`/predict\`, el código debe mostrar la implementación de ese endpoint, sin importar el framework (FastAPI, Flask, etc.). Si se pide una app, el código debe reflejar los componentes de la UI. La ausencia de código funcional para un entregable clave debe resultar en un puntaje muy bajo para ese criterio (ej. C1. App funcional).
+*   **Reproducibilidad Estricta:** La presencia de un archivo de dependencias (\`requirements.txt\`, \`environment.yml\`, \`package.json\`, etc.) es obligatoria. Además, busca el uso de semillas (\`random_state\`, \`seed\`) en los modelos y divisiones de datos para garantizar la reproducibilidad. La falta de estos elementos debe ser penalizada en el criterio de reproducibilidad (ej. 'D1. Repo & scripts').
+*   **Fairness y Ética:** La evaluación de equidad (fairness) y la implementación de guardrails éticos no son opcionales. Verifica si se reportan métricas por subgrupos y si se implementan los disclaimers y reglas de derivación. La omisión debe ser penalizada en los criterios correspondientes (D3 y B3).
+*   **Exclusión de la Categoría 'Presentación y Pitch' (Categoría E):** ¡Instrucción Crítica! Esta categoría **NO DEBE SER EVALUADA**. Se evaluará por otros medios. Ignora por completo esta sección de la rúbrica en tu análisis. No le asignes puntaje, no generes feedback para ella, y no la incluyas en el arreglo "report" de tu respuesta JSON. El puntaje general debe ser el promedio de las demás categorías (A, B, C, D).
 `;
       
       if (isHackathonSalud) {
           hackathonInstructions += `
-5.  **Repositorio de Referencia:** Se proporcionó a los participantes un repositorio guía/starter: \`https://github.com/Giocrisrai/hackaton_duoc_2025\`. Es muy probable que la estructura del proyecto que estás evaluando sea similar o idéntica a la de este repositorio. **No penalices por similitud con este repositorio base**. En su lugar, enfócate en evaluar la calidad y originalidad de la **implementación específica** dentro de esa estructura: el código del modelo, el feature engineering, los prompts del LLM, la calidad de la app, y el análisis presentado. El valor está en cómo *usaron y mejoraron* la base, no en la estructura misma.
+**Repositorio de Referencia (Solo para Desafío Salud):**
+*   Se proporcionó a los participantes un repositorio guía/starter: \`https://github.com/Giocrisrai/hackaton_duoc_2025\`. Es muy probable que la estructura del proyecto que estás evaluando sea similar o idéntica a la de este repositorio. **No penalices por similitud con este repositorio base**. En su lugar, enfócate en evaluar la calidad y originalidad de la **implementación específica** dentro de esa estructura: el código del modelo, el feature engineering, los prompts del LLM, la calidad de la app, y el análisis presentado. El valor está en cómo *usaron y mejoraron* la base, no en la estructura misma.
 `;
       }
       contextSpecificInstruction = hackathonInstructions;
@@ -205,17 +213,18 @@ ${contextSpecificInstruction}
 
 **Instrucciones Clave:**
 1.  **Rúbrica Estricta:** Basa TODA tu evaluación en los criterios y puntajes definidos en la rúbrica.
-2.  **Principio de Verificación (¡Muy Importante!):** Tu evaluación debe basarse en la **evidencia de implementación** presente en los resúmenes del código fuente (ej. archivos \`.py\`). Los documentos descriptivos (como README.md o notebooks con mucho texto) son importantes, pero **no sustituyen al código**. Si un proyecto describe funcionalidades complejas en su documentación pero los resúmenes de código no muestran una implementación correspondiente, **debes penalizar severamente** en los criterios relevantes. Corrobora siempre las afirmaciones con los hechos del código.
-3.  **Evaluación Evolutiva:** Ten en cuenta que el proyecto puede ser una continuación de una entrega anterior. Céntrate en evaluar el trabajo según la **rúbrica actual**. Si identificas código o conceptos de una entrega previa (por ejemplo, un sistema RAG en un proyecto sobre Agentes Funcionales), evalúa cómo se integra y evoluciona para cumplir los nuevos requisitos, en lugar de simplemente re-evaluarlo con criterios antiguos. El feedback debe ser constructivo, reconociendo el trabajo previo pero enfocándose en el cumplimiento de los objetivos de la evaluación actual.
-4.  **Feedback Basado en Resúmenes:** Tu feedback debe ser concreto, haciendo referencia a la información contenida en los resúmenes. Si un resumen menciona un archivo específico (ej. \`conf/base/parameters.yml\`), úsalo en tu justificación.
-5.  **Justificación Cuantitativa:** Justifica cada puntaje. Si asignas 80/100, explica qué faltó para alcanzar el 100 según la información disponible.
-6.  **Formato JSON Obligatorio:** Tu respuesta DEBE ser un único objeto JSON válido. No incluyas texto, markdown, o "backticks" (como \`\`\`json) alrededor del objeto JSON.
-7.  **Cálculo de Puntajes:**
+2.  **Principio de Verificación (¡Muy Importante!):** Tu evaluación debe basarse en la **evidencia de implementación** presente en los resúmenes del código fuente (ej. archivos \`.py\`, \`.js\`). Los documentos descriptivos (como README.md o notebooks con mucho texto) son importantes, pero **no sustituyen al código**. Si un proyecto describe funcionalidades complejas en su documentación pero los resúmenes de código no muestran una implementación correspondiente, **debes penalizar severamente** en los criterios relevantes. Corrobora siempre las afirmaciones con los hechos del código.
+3.  **Tecnología Agnóstica:** La evaluación debe ser agnóstica al lenguaje de programación o framework, a menos que la rúbrica especifique uno. Enfócate en los **conceptos lógicos y funcionales** requeridos: ¿Existe un modelo de machine learning? ¿Hay una API funcional? ¿La aplicación de demo es interactiva? ¿El proyecto es reproducible (buscando archivos como \`requirements.txt\`, \`package.json\`, \`Dockerfile\`, etc.)? El cumplimiento de los objetivos es más importante que la herramienta utilizada.
+4.  **Evaluación Evolutiva:** Ten en cuenta que el proyecto puede ser una continuación de una entrega anterior. Céntrate en evaluar el trabajo según la **rúbrica actual**. Si identificas código o conceptos de una entrega previa (por ejemplo, un sistema RAG en un proyecto sobre Agentes Funcionales), evalúa cómo se integra y evoluciona para cumplir los nuevos requisitos, en lugar de simplemente re-evaluarlo con criterios antiguos. El feedback debe ser constructivo, reconociendo el trabajo previo pero enfocándose en el cumplimiento de los objetivos de la evaluación actual.
+5.  **Feedback Basado en Resúmenes:** Tu feedback debe ser concreto, haciendo referencia a la información contenida en los resúmenes. Si un resumen menciona un archivo específico (ej. \`conf/base/parameters.yml\`), úsalo en tu justificación.
+6.  **Justificación Cuantitativa:** Justifica cada puntaje. Si asignas 80/100, explica qué faltó para alcanzar el 100 según la información disponible.
+7.  **Formato JSON Obligatorio:** Tu respuesta DEBE ser un único objeto JSON válido. No incluyas texto, markdown, o "backticks" (como \`\`\`json) alrededor del objeto JSON.
+8.  **Cálculo de Puntajes:**
     -   El 'score' para cada criterio debe estar entre 0 y 100.
     -   El 'overallScore' debe ser el promedio exacto de los 'score' de todos los criterios.
     -   La 'finalChileanGrade' se calcula como \`((overallScore / 100) * 6) + 1\`. No la redondees aquí, solo el cálculo directo.
-8.  **Análisis de Profesionalismo:** Presta especial atención a la información sobre reproducibilidad, calidad del código y seguridad mencionada en los resúmenes.
-9.  **Alerta de Seguridad:** Si se proporciona una alerta de seguridad (como la presencia de un archivo \`.env\`), DEBES mencionarla de forma prominente y crítica en el \`professionalismSummary\` y aplicar una penalización severa.
+9.  **Análisis de Profesionalismo:** Presta especial atención a la información sobre reproducibilidad, calidad del código y seguridad mencionada en los resúmenes.
+10. **Alerta de Seguridad:** Si se proporciona una alerta de seguridad (como la presencia de un archivo \`.env\`), DEBES mencionarla de forma prominente y crítica en el \`professionalismSummary\` y aplicar una penalización severa.
 
 **Esquema JSON Requerido:**
 \`\`\`json
@@ -284,6 +293,7 @@ Por favor, evalúa el proyecto basándote en la rúbrica y los resúmenes de los
       
       // Provide a basic proportional grade as a starting point. The UI will immediately recalculate it.
       const calculatedGrade = (result.overallScore / 100) * 6 + 1;
+      // FIX: Corrected variable from 'clampedGrade' to 'calculatedGrade' to avoid using a variable in its own declaration.
       const clampedGrade = Math.min(7.0, Math.max(1.0, calculatedGrade));
       result.finalChileanGrade = Math.round(clampedGrade * 10) / 10;
     }

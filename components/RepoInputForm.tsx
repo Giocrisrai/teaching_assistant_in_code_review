@@ -39,11 +39,6 @@ export const RepoInputForm: React.FC<RepoInputFormProps> = ({
   const [showToken, setShowToken] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Default to the 'zip' upload tab
-  useState(() => {
-    setAnalysisSource('zip');
-  });
-
   const selectedRubricName = useMemo(() => {
     const matchingRubric = PREDEFINED_RUBRICS.find(r => r.content.trim() === rubric.trim());
     return matchingRubric ? matchingRubric.name : 'Personalizada';
