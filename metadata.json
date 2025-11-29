@@ -1,5 +1,5 @@
 {
-  "name": "AI Code Reviewer hackaton",
+  "name": "Copy of AI Code Reviewer",
   "description": "An automated code review tool that uses the Gemini API to evaluate GitHub projects against a specific rubric, providing detailed feedback and scores for each criterion.",
   "requestFramePermissions": []
 }

@@ -1,3 +1,4 @@
+
 export const RELEVANT_EXTENSIONS = [
   '.py', '.yml', '.yaml', '.md', '.txt', '.json',
   '.ipynb', '.cfg', '.toml', '.ini', '.js', '.ts', '.html', '.css',
@@ -110,75 +111,86 @@ const KEDRO_RUBRIC = `# Rúbrica de Evaluación: Proyecto Machine Learning con K
 
 const ML_PIPELINES_DVC_AIRFLOW_RUBRIC = `# Rúbrica de Evaluación: Pipelines de ML con DVC, Airflow y Docker
 
-## 1. Integración de Pipelines (8%)
-- **(100 pts) Muy buen desempeño:** Pipelines Kedro modulares y ejecutables para clasificación y regresión.
-- **(80 pts) Buen desempeño:** Pipelines funcionales, con alguna mejora menor en modularidad o claridad.
-- **(60 pts) Desempeño aceptable:** Pipelines funcionales pero con estructura monolítica o poco clara.
-- **(30 pts) Desempeño incipiente:** Pipelines con errores de ejecución o dependencias mal definidas.
-- **(0 pts) No logrado:** No se implementan pipelines o no son ejecutables.
+## 1. Integración de Pipelines Kedro (8%)
+- **(100 pts) Muy buen desempeño:** Ambos pipelines (clasificación y regresión) son modulares, ejecutables sin errores y siguen las mejores prácticas de Kedro.
+- **(80 pts) Buen desempeño:** Pipelines funcionales y bien estructurados, con pequeños detalles a mejorar.
+- **(60 pts) Desempeño aceptable:** Pipelines básicos operativos, pero con problemas de modularidad o claridad.
+- **(40 pts) Desempeño incipiente:** Pipelines con errores de ejecución o mal estructurados.
+- **(20 pts) Desempeño insuficiente:** No se implementan pipelines funcionales en Kedro.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
 
 ## 2. DVC (datos, features, modelos, métricas) (7%)
-- **(100 pts) Muy buen desempeño:** Stages en dvc.yaml bien definidos; artefactos y métricas correctamente versionadas.
-- **(80 pts) Buen desempeño:** DVC se utiliza para versionar la mayoría de los artefactos, pero falta algún elemento (ej. métricas).
-- **(60 pts) Desempeño aceptable:** DVC se usa de forma básica (ej. solo datos), pero no se definen stages claros.
-- **(30 pts) Desempeño incipiente:** Uso incorrecto de DVC, con archivos importantes no versionados o errores en \`dvc.yaml\`.
-- **(0 pts) No logrado:** No se utiliza DVC.
+- **(100 pts) Muy buen desempeño:** Uso completo de DVC. \`dvc.yaml\` define stages claros. Todos los artefactos (datos, features, modelos, métricas) están correctamente versionados y son reproducibles.
+- **(80 pts) Buen desempeño:** DVC se usa correctamente para versionar los artefactos principales.
+- **(60 pts) Desempeño aceptable:** Uso básico de DVC, pero faltan stages o algunos artefactos no están versionados.
+- **(40 pts) Desempeño incipiente:** \`dvc.yaml\` mal configurado o uso incorrecto de los comandos de DVC.
+- **(20 pts) Desempeño insuficiente:** No se utiliza DVC o su uso es meramente testimonial.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
 
 ## 3. Airflow (DAG orquestado) (7%)
-- **(100 pts) Muy buen desempeño:** DAG ejecuta ambos pipelines (clasificación y regresión) de forma correcta y consolida resultados.
-- **(80 pts) Buen desempeño:** DAG ejecuta los pipelines, pero con problemas menores en la orquestación o consolidación.
-- **(60 pts) Desempeño aceptable:** DAG funcional para un solo pipeline o con ejecución manual requerida.
-- **(30 pts) Desempeño incipiente:** DAG con errores de sintaxis o que no logra ejecutar los pipelines de Kedro.
-- **(0 pts) No logrado:** No se implementa orquestación con Airflow.
+- **(100 pts) Muy buen desempeño:** Un DAG de Airflow orquesta la ejecución de ambos pipelines (clasificación y regresión) de forma secuencial o paralela, y consolida los resultados de forma exitosa. El DAG es robusto y claro.
+- **(80 pts) Buen desempeño:** DAG funcional que ejecuta ambos pipelines, con pequeños detalles de mejora en la consolidación o logs.
+- **(60 pts) Desempeño aceptable:** DAG básico que logra ejecutar los pipelines, pero con problemas de dependencias o sin consolidación de resultados.
+- **(40 pts) Desempeño incipiente:** El DAG tiene errores y no logra ejecutar los pipelines de forma fiable.
+- **(20 pts) Desempeño insuficiente:** No se implementa un DAG de Airflow.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
 
 ## 4. Docker (portabilidad) (7%)
-- **(100 pts) Muy buen desempeño:** Imagen funcional, reproducible, con instrucciones de ejecución claras en el README.
-- **(80 pts) Buen desempeño:** Imagen funcional, pero con instrucciones de ejecución incompletas o poco claras.
-- **(60 pts) Desempeño aceptable:** La imagen se construye pero presenta errores al ejecutar o requiere pasos manuales no documentados.
-- **(30 pts) Desempeño incipiente:** Dockerfile presente pero con errores que impiden la construcción de la imagen.
-- **(0 pts) No logrado:** No se utiliza Docker.
+- **(100 pts) Muy buen desempeño:** Imagen de Docker funcional, reproducible y optimizada. Incluye instrucciones claras (\`README.md\`) para construir y ejecutar el entorno completo (Kedro, Airflow, DVC).
+- **(80 pts) Buen desempeño:** Imagen funcional y reproducible con instrucciones adecuadas.
+- **(60 pts) Desempeño aceptable:** La imagen se construye y ejecuta, pero no es eficiente o las instrucciones son poco claras.
+- **(40 pts) Desempeño incipiente:** Errores al construir o ejecutar la imagen de Docker.
+- **(20 pts) Desempeño insuficiente:** No se proporciona un \`Dockerfile\` funcional.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
 
 ## 5. Métricas y visualizaciones (10%)
-- **(100 pts) Muy buen desempeño:** Métricas correctas y apropiadas para clasificación y regresión. Análisis gráfico comparativo claro y bien presentado.
-- **(80 pts) Buen desempeño:** Métricas correctas, pero el análisis gráfico es básico o poco claro.
-- **(60 pts) Desempeño aceptable:** Se usan métricas, pero algunas son inapropiadas para el problema (ej. accuracy en datos desbalanceados).
-- **(30 pts) Desempeño incipiente:** Métricas incorrectas o ausentes. Sin visualizaciones.
-- **(0 pts) No logrado:** No se reportan métricas.
+- **(100 pts) Muy buen desempeño:** Se utilizan métricas apropiadas para clasificación (ej. AUROC, F1-score, Confusion Matrix) y regresión (ej. R2, RMSE, MAE). Se presenta una tabla comparativa clara y visualizaciones (gráficos) que facilitan el análisis de resultados de todos los modelos.
+- **(80 pts) Buen desempeño:** Se usan métricas correctas y se presenta una tabla comparativa funcional.
+- **(60 pts) Desempeño aceptable:** Se usan métricas básicas y la comparación es limitada.
+- **(40 pts) Desempeño incipiente:** Métricas incorrectas o mal interpretadas.
+- **(20 pts) Desempeño insuficiente:** No se reportan métricas de evaluación.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
 
 ## 6. Cobertura de modelos + Tuning + CV (24%)
-- **(100 pts) Muy buen desempeño:** ≥5 modelos por pipeline (clasificación y regresión), con búsqueda de hiperparámetros (GridSearchCV) y validación cruzada (k≥5). Tabla comparativa clara.
-- **(80 pts) Buen desempeño:** Cumple con el número de modelos, pero la implementación de GridSearchCV o CV es parcial o tiene mejoras.
-- **(60 pts) Desempeño aceptable:** Menos de 5 modelos por pipeline, o no se implementa GridSearchCV/CV de forma correcta.
-- **(30 pts) Desempeño incipiente:** Uno o dos modelos básicos sin tuning ni validación cruzada.
-- **(0 pts) No logrado:** No se entrenan modelos de ML.
+- **(100 pts) Muy buen desempeño:** Se implementan y comparan 5 o más modelos para clasificación Y 5 o más para regresión. Se realiza búsqueda de hiperparámetros con GridSearchCV y validación cruzada (k>=5) para los mejores modelos. La tabla comparativa incluye media y desviación estándar de las métricas.
+- **(80 pts) Buen desempeño:** Se cumple con el número de modelos y se aplica GridSearch/CV correctamente.
+- **(60 pts) Desempeño aceptable:** Se implementan menos de 5 modelos por tipo, o la búsqueda de hiperparámetros es superficial.
+- **(40 pts) Desempeño incipiente:** No se implementa una variedad de modelos o no se realiza tuning.
+- **(20 pts) Desempeño insuficiente:** Se implementa un solo modelo básico sin validación.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
 
 ## 7. Reproducibilidad (Git+DVC+Docker) (7%)
-- **(100 pts) Muy buen desempeño:** Ejecución determinística y completamente documentada. El proyecto se puede reproducir sin errores siguiendo el README.
-- **(80 pts) Buen desempeño:** Proyecto reproducible con algunos pasos manuales menores no documentados.
-- **(60 pts) Desempeño aceptable:** Dificultades para reproducir el proyecto debido a dependencias faltantes o pasos no claros.
-- **(30 pts) Desempeño incipiente:** El proyecto no es reproducible en un entorno limpio.
-- **(0 pts) No logrado:** No hay esfuerzo por la reproducibilidad.
+- **(100 pts) Muy buen desempeño:** El proyecto es 100% reproducible. La combinación de Git, DVC y Docker permite a un tercero clonar el repositorio y ejecutar todo el flujo de trabajo de forma determinística, obteniendo los mismos resultados.
+- **(80 pts) Buen desempeño:** El proyecto es reproducible con instrucciones claras, aunque requiera pequeños ajustes manuales.
+- **(60 pts) Desempeño aceptable:** La reproducibilidad es parcial, con algunos pasos que fallan o no están documentados.
+- **(40 pts) Desempeño incipiente:** Dificultades significativas para reproducir los resultados.
+- **(20 pts) Desempeño insuficiente:** El proyecto no es reproducible.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
 
 ## 8. Documentación técnica (5%)
-- **(100 pts) Muy buen desempeño:** README excelente con instrucciones claras de instalación y ejecución, y una descripción de la arquitectura de la solución (Kedro-DVC-Airflow-Docker).
-- **(80 pts) Buen desempeño:** README con instrucciones funcionales, pero la descripción de la arquitectura es superficial.
-- **(60 pts) Desempeño aceptable:** README básico, con instrucciones incompletas.
-- **(30 pts) Desempeño incipiente:** Documentación mínima o confusa.
-- **(0 pts) No logrado:** Sin README.
+- **(100 pts) Muy buen desempeño:** El \`README.md\` es excepcional: explica la arquitectura del proyecto (Kedro, DVC, Airflow, Docker), el propósito de los pipelines, y proporciona instrucciones detalladas y claras para la instalación, ejecución y reproducción de los experimentos.
+- **(80 pts) Buen desempeño:** \`README.md\` claro con instrucciones y una descripción adecuada.
+- **(60 pts) Desempeño aceptable:** Documentación básica que permite entender el proyecto pero carece de detalles.
+- **(40 pts) Desempeño incipiente:** Documentación escasa o confusa.
+- **(20 pts) Desempeño insuficiente:** Sin \`README.md\` o documentación técnica.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
 
 ## 9. Reporte de experimentos (5%)
-- **(100 pts) Muy buen desempeño:** Informe o notebook con una comparación final clara de los modelos, discusión de resultados y conclusiones bien fundamentadas.
-- **(80 pts) Buen desempeño:** Comparación de modelos presente, pero la discusión o las conclusiones son superficiales.
-- **(60 pts) Desempeño aceptable:** Solo se presentan los resultados (métricas) sin discusión ni conclusiones.
-- **(30 pts) Desempeño incipiente:** Reporte incompleto o poco claro.
-- **(0 pts) No logrado:** No hay reporte de experimentos.
+- **(100 pts) Muy buen desempeño:** Se presenta un reporte claro (en un notebook o \`README.md\`) que incluye una comparación final de los modelos, una discusión profunda de los resultados obtenidos, y conclusiones bien fundamentadas sobre qué modelo es el mejor para cada tarea y por qué.
+- **(80 pts) Buen desempeño:** Reporte funcional con comparación y conclusiones adecuadas.
+- **(60 pts) Desempeño aceptable:** Reporte básico con resultados pero poca discusión o análisis.
+- **(40 pts) Desempeño incipiente:** Reporte confuso o incompleto.
+- **(20 pts) Desempeño insuficiente:** No se presenta un reporte de los experimentos.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
 
 ## 10. Defensa técnica (oral) (20%)
-- **(100 pts) Muy buen desempeño:** (Evaluado oralmente) Explicación clara y concisa del flujo Kedro-Airflow-DVC-Docker, con respuestas sólidas a las preguntas. Buscar evidencia como un archivo .pptx o un resumen en el README.
-- **(80 pts) Buen desempeño:** (Evaluado oralmente) La documentación sugiere una presentación funcional pero con algunas imprecisiones o falta de profundidad.
-- **(60 pts) Desempeño aceptable:** (Evaluado oralmente) La documentación es escasa, lo que sugiere dificultad para explicar el flujo completo.
-- **(30 pts) Desempeño incipiente:** (Evaluado oralmente) La falta de documentación clara hace improbable una defensa técnica exitosa.
-- **(0 pts) No logrado:** (Evaluado oralmente) No hay evidencia de preparación para una defensa técnica.
+- **(100 pts) Muy buen desempeño:** Explicación oral clara, concisa y profunda del flujo de trabajo completo (Kedro-Airflow-DVC-Docker). Demuestra dominio técnico y responde a las preguntas con solvencia.
+- **(80 pts) Buen desempeño:** Buena explicación y respuestas correctas a las preguntas.
+- **(60 pts) Desempeño aceptable:** Explicación básica con algunas imprecisiones.
+- **(40 pts) Desempeño incipiente:** Explicación confusa o incapacidad para responder preguntas técnicas.
+- **(20 pts) Desempeño insuficiente:** No presenta defensa técnica.
+- **(0 pts) No logrado:** No cumple requisitos mínimos.
+- **NOTA PARA IA:** Este criterio se evalúa de forma externa y no puede ser medido a partir del código. **Asigna un puntaje de 0** y en el campo de 'feedback' escribe exactamente: "Este criterio se evalúa de forma oral y no puede ser calificado automáticamente. El puntaje debe ser ajustado manualmente por el evaluador."
 `;
 
 const RAG_LLM_RUBRIC = `# Rúbrica de Evaluación: Diseño de Solución con LLM y RAG
@@ -318,6 +330,72 @@ const AGENT_FUNCIONAL_RUBRIC = `# Rúbrica de Evaluación: Desarrollo de un Agen
 - **(60 pts) Desempeño aceptable:** Utiliza lenguaje técnico básico y presenta argumentos con escaso respaldo.
 - **(30 pts) Desempeño incipiente:** Utiliza lenguaje poco técnico o argumentos débiles y poco claros.
 - **(0 pts) No logrado:** No utiliza lenguaje técnico ni presenta argumentos válidos.
+`;
+
+const OBSERVABILITY_RUBRIC = `# Rúbrica de Evaluación: Implementación de Observabilidad (Evaluación Parcial N°3)
+
+## 1. IE1. Implementa métricas de observabilidad para medir la precisión, consistencia y frecuencia de errores de un agente de IA en escenarios con variabilidad de datos. (15%)
+- **(100 pts) Muy buen desempeño:** Implementa métricas precisas y pertinentes que permiten evaluar en profundidad la precisión, consistencia y errores del agente, adaptándose a escenarios variados.
+- **(80 pts) Buen desempeño:** Implementa métricas adecuadas que cubren mayormente los aspectos de precisión, consistencia y errores del agente en contextos variables.
+- **(60 pts) Desempeño aceptable:** Implementa métricas básicas que permiten observar parcialmente la precisión y errores del agente, aunque no abordan todos los aspectos.
+- **(30 pts) Desempeño incipiente:** Implementa métricas poco pertinentes o incompletas, sin lograr una evaluación clara del comportamiento del agente.
+- **(0 pts) Desempeño no logrado:** No implementa métricas de observabilidad o lo hace de manera totalmente incorrecta.
+
+## 2. IE2. Aplica métricas de observabilidad para medir la latencia y el uso de recursos de un agente de IA en escenarios con variabilidad de datos. (15%)
+- **(100 pts) Muy buen desempeño:** Aplica métricas precisas y contextualizadas que permiten medir eficazmente la latencia y uso de recursos del agente en distintos escenarios.
+- **(80 pts) Buen desempeño:** Aplica métricas relevantes para analizar latencia y recursos, con resultados útiles en la mayoría de los contextos.
+- **(60 pts) Desempeño aceptable:** Aplica algunas métricas funcionales, aunque de forma limitada o con escasa contextualización.
+- **(30 pts) Desempeño incipiente:** Aplica métricas con errores o sin relación clara con la latencia o el uso de recursos.
+- **(0 pts) Desempeño no logrado:** No aplica métricas de observabilidad o no logra relacionarlas con el uso de recursos o la latencia.
+
+## 3. IE3. Examina logs y eventos durante la ejecución, para identificar posibles errores o cuellos de botella. (15%)
+- **(100 pts) Muy buen desempeño:** Examina con profundidad y precisión los logs y eventos, identificando correctamente errores y cuellos de botella en la ejecución del agente.
+- **(80 pts) Buen desempeño:** Examina los logs de forma adecuada y detecta la mayoría de los problemas presentes.
+- **(60 pts) Desempeño aceptable:** Examina parcialmente los logs, reconociendo algunos errores pero sin profundizar en su origen.
+- **(30 pts) Desempeño incipiente:** Examina los logs de manera superficial, sin identificar correctamente los problemas.
+- **(0 pts) Desempeño no logrado:** No examina los logs o lo hace de manera incorrecta o irrelevante.
+
+## 4. IE4. Identifica patrones o anomalías en los registros, para detectar áreas críticas de mejora. (10%)
+- **(100 pts) Muy buen desempeño:** Identifica de forma clara y fundamentada patrones y anomalías, proponiendo mejoras estratégicas con base en los hallazgos.
+- **(80 pts) Buen desempeño:** Identifica correctamente patrones y anomalías relevantes, proponiendo mejoras pertinentes.
+- **(60 pts) Desempeño aceptable:** Identifica algunos patrones o anomalías, pero sin vincularlos completamente a mejoras concretas.
+- **(30 pts) Desempeño incipiente:** Identifica patrones o anomalías de forma superficial o sin conexión con mejoras significativas.
+- **(0 pts) Desempeño no logrado:** No identifica patrones ni anomalías en los registros.
+
+## 5. IE5. Construye un dashboard visual que muestra el comportamiento del agente, según las métricas implementadas. (15%)
+- **(100 pts) Muy buen desempeño:** Construye un dashboard visual completo, claro e interactivo, que representa con precisión todas las métricas clave del agente.
+- **(80 pts) Buen desempeño:** Construye un dashboard visual adecuado y comprensible, que representa correctamente la mayoría de las métricas.
+- **(60 pts) Desempeño aceptable:** Construye un dashboard básico, con algunas métricas clave, pero con limitaciones de visualización o diseño.
+- **(30 pts) Desempeño incipiente:** Construye un dashboard incompleto o poco claro, que representa métricas de forma parcial o incorrecta.
+- **(0 pts) Desempeño no logrado:** No construye un dashboard visual o lo hace sin utilidad para el análisis.
+
+## 6. IE6. Integra protocolos de seguridad y uso responsable en el diseño de agentes, considerando criterios éticos, normativos y de privacidad, en contextos de producción. (10%)
+- **(100 pts) Muy buen desempeño:** Integra protocolos robustos de seguridad y uso responsable, alineados con criterios éticos, normativos y de privacidad en todos los niveles del diseño.
+- **(80 pts) Buen desempeño:** Integra protocolos adecuados en seguridad y responsabilidad, considerando aspectos normativos y éticos en general.
+- **(60 pts) Desempeño aceptable:** Integra algunos protocolos básicos, aunque de forma incompleta o sin cubrir todos los criterios éticos o de privacidad.
+- **(30 pts) Desempeño incipiente:** Integra de forma superficial elementos de seguridad o responsabilidad, sin claridad ni alineación normativa.
+- **(0 pts) Desempeño no logrado:** No integra protocolos de seguridad ni criterios de responsabilidad en el diseño.
+
+## 7. IE7. Propone mejoras de desempeño o rediseño del agente, basándose en análisis de datos observados, con el fin de aumentar la sostenibilidad y escalabilidad de la solución. (10%)
+- **(100 pts) Muy buen desempeño:** Propone mejoras o rediseños bien fundamentados, innovadores y alineados con la sostenibilidad y escalabilidad de la solución.
+- **(80 pts) Buen desempeño:** Propone mejoras pertinentes basadas en un análisis adecuado de los datos observados.
+- **(60 pts) Desempeño aceptable:** Propone algunas mejoras generales, aunque sin suficiente respaldo en el análisis de datos.
+- **(30 pts) Desempeño incipiente:** Propone mejoras poco relevantes o mal fundamentadas.
+- **(0 pts) Desempeño no logrado:** No propone mejoras ni rediseño del agente.
+
+## 8. IE8. Elabora un informe técnico, que incluye capturas, gráficos y visualizaciones, respaldando las decisiones de diseño con documentación. (5%)
+- **(100 pts) Muy buen desempeño:** Elabora un informe técnico completo, claro y bien estructurado, que integra evidencia visual y documentación sólida.
+- **(80 pts) Buen desempeño:** Elabora un informe técnico bien organizado, con evidencia visual suficiente y respaldo documental pertinente.
+- **(60 pts) Desempeño aceptable:** Elabora un informe aceptable, con algunos elementos visuales y documentación parcial.
+- **(30 pts) Desempeño incipiente:** Elabora un informe incompleto o poco claro, con escasa evidencia visual o documentación.
+- **(0 pts) Desempeño no logrado:** No elabora el informe técnico o lo presenta sin sustento visual o documental.
+
+## 9. IE9. Utiliza en el informe un lenguaje técnico, argumentando sus respuestas con respaldado en evidencias y/o ejemplos concretos. (5%)
+- **(100 pts) Muy buen desempeño:** Utiliza lenguaje técnico preciso y adecuado en todo el informe, con argumentación sólida y ejemplos bien seleccionados.
+- **(80 pts) Buen desempeño:** Utiliza lenguaje técnico apropiado y argumentos coherentes, con algunos ejemplos relevantes.
+- **(60 pts) Desempeño aceptable:** Utiliza lenguaje técnico básico y argumenta sus ideas de manera general, con ejemplos limitados.
+- **(30 pts) Desempeño incipiente:** Utiliza lenguaje poco técnico o argumentos débiles, sin evidencias claras.
+- **(0 pts) Desempeño no logrado:** No utiliza lenguaje técnico ni presenta argumentación basada en evidencias.
 `;
 
 const HACKATHON_SALUD_RUBRIC = `# Rúbrica de Evaluación: Hackathon Desafío Salud - Coach de Bienestar Preventivo
@@ -553,11 +631,11 @@ const HACKATHON_CIUDADES_RUBRIC = `# Rúbrica de Evaluación: Hackathon Desafío
 
 
 export const PREDEFINED_RUBRICS = [
-  // FIX: Corrected typo from KRO_RUBRIC to KEDRO_RUBRIC
   { name: 'Proyecto ML con Kedro', content: KEDRO_RUBRIC },
   { name: 'ML Pipelines (Kedro, DVC, Airflow)', content: ML_PIPELINES_DVC_AIRFLOW_RUBRIC },
   { name: 'Solución con LLM y RAG', content: RAG_LLM_RUBRIC },
   { name: 'Desarrollo de Agente Funcional', content: AGENT_FUNCIONAL_RUBRIC },
+  { name: 'Evaluación 3: Observabilidad', content: OBSERVABILITY_RUBRIC },
   { name: 'Hackathon: Desafío Salud', content: HACKATHON_SALUD_RUBRIC },
   { name: 'Hackathon: Desafío Educación', content: HACKATHON_EDUCACION_RUBRIC },
   { name: 'Hackathon: Desafío Ciudades', content: HACKATHON_CIUDADES_RUBRIC },
