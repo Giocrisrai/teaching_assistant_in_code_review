@@ -1,12 +1,14 @@
 # AI Code Reviewer — Asistente de IA para evaluación de código con rúbrica
 
+> **English summary.** Web app that grades student code with AI against a rubric. It ingests work from a GitHub repository or a ZIP/RAR file, evaluates it with Google Gemini, and returns per-criterion scores, actionable feedback and a final grade on the Chilean 1.0–7.0 scale, exportable to PDF. React 19 + TypeScript + Vite. It automates the first grading pass; the instructor reviews the result. The rest of this document is in Spanish.
+
 Aplicación web que **evalúa entregas de código de estudiantes con IA**: ingesta el trabajo desde un repositorio de GitHub o un archivo comprimido, lo analiza contra una **rúbrica**, y entrega puntaje por criterio, retroalimentación accionable y **nota final en escala chilena (1.0–7.0)**. Reduce la carga de corrección del docente y estandariza la retroalimentación.
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=flat-square&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
-[![License](https://img.shields.io/badge/license-Academic-green.svg?style=flat-square)](#)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 
 ---
 
@@ -61,3 +63,7 @@ Prototipo independiente que explora la **IA generativa aplicada a la evaluación
 
 👤 **Giocrisrai Godoy Bonillo** — AI Engineer · IA aplicada a educación e investigación
 · [giocrisrai.com](https://giocrisrai.com) · [github.com/Giocrisrai](https://github.com/Giocrisrai) · [linkedin.com/in/giocrisrai](https://www.linkedin.com/in/giocrisrai)
+
+## Nota de seguridad
+
+La clave de Gemini se inyecta en el bundle del navegador en tiempo de compilación (`vite.config.ts`). Eso sirve para uso local o en una red de confianza. **No publiques esta aplicación en internet con tu clave**: cualquiera podría extraerla. Para un despliegue público, mueve la llamada a Gemini a un backend que guarde la clave.
