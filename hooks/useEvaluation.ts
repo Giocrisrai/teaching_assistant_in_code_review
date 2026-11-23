@@ -6,6 +6,7 @@ import { evaluateRepoWithGemini, selectRelevantFilesWithGemini } from '../servic
 import { getCriteriaFromRubric } from '../utils/rubricParser';
 import { extractTextFromPdf } from '../utils/pdfParser';
 import { extractTextFromOfficeXml } from '../utils/officeParser';
+import { SAMPLE_EVALUATION, DEMO_REPO_NAME } from '../demo/sampleEvaluation';
 
 export function useEvaluation() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -157,7 +158,29 @@ export function useEvaluation() {
     }
   }, []);
 
+  /** Muestra una evaluación de ejemplo, sin llamar a Gemini. */
+  const loadDemo = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    setEvaluationResult(null);
+    setRepoName('');
+    const pasos = [
+      'Validando la rúbrica...',
+      'Leyendo los archivos del proyecto de ejemplo...',
+      'Evaluando cada criterio de la rúbrica...',
+    ];
+    for (const paso of pasos) {
+      setLoadingMessage(paso);
+      await new Promise(resolve => setTimeout(resolve, 700));
+    }
+    setRepoName(DEMO_REPO_NAME);
+    setEvaluationResult(SAMPLE_EVALUATION);
+    setIsLoading(false);
+    setLoadingMessage('');
+  }, []);
+
   return {
+    loadDemo,
     isLoading,
     error,
     evaluationResult,

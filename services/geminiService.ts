@@ -2,7 +2,21 @@ import { GoogleGenAI, Type } from "@google/genai";
 import type { GitHubFile, EvaluationResult } from '../types';
 
 // Per instructions, initialize the client with the API key from environment variables.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let aiClient: GoogleGenAI | null = null;
+
+/** Indica si la aplicación se compiló con una clave de Gemini. */
+export const hasGeminiKey = (): boolean => Boolean(process.env.API_KEY);
+
+/** Crea el cliente al primer uso, para que la app cargue aunque no haya clave (modo demo). */
+function getAi(): GoogleGenAI {
+    if (!hasGeminiKey()) {
+        throw new Error("Esta instancia no tiene una clave de Gemini configurada. Usa «Ver ejemplo» para conocer el informe, o ejecuta la aplicación en local con tu propia clave (ver README).");
+    }
+    if (!aiClient) {
+        aiClient = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    }
+    return aiClient;
+}
 
 // Set a character limit for each chunk to avoid oversized prompts that can cause 500 errors.
 const CHUNK_SIZE_LIMIT = 150000;
@@ -42,7 +56,7 @@ ${JSON.stringify(filePaths, null, 2)}
 Ahora, selecciona los archivos más críticos y devuelve el resultado en el formato JSON especificado.`;
 
     try {
-        const response = await ai.models.generateContent({
+        const response = await getAi().models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
@@ -110,7 +124,7 @@ ${fileContents}
 Genera un resumen técnico en formato Markdown.`;
 
     try {
-        const response = await ai.models.generateContent({
+        const response = await getAi().models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
@@ -257,7 +271,7 @@ Por favor, evalúa el proyecto basándote en la rúbrica y los resúmenes de los
   const fullPrompt = `${systemInstruction}\n\n${userPrompt}`;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await getAi().models.generateContent({
       model: 'gemini-2.5-flash',
       contents: fullPrompt,
       config: {

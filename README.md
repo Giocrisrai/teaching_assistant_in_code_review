@@ -11,6 +11,12 @@ Aplicación web que **evalúa entregas de código de estudiantes con IA**: inges
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=flat-square&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 
+**[▶ Demo en vivo](https://giocrisrai.github.io/teaching_assistant_in_code_review/)** — pulsa «Ver ejemplo» para ver un informe completo sin necesidad de clave.
+
+![Demo: del formulario al informe de evaluación con nota en escala chilena](docs/demo.gif)
+
+> La demo pública se publica sin clave de Gemini, así que no evalúa entregas reales: muestra un informe de ejemplo (caso ficticio, señalado como tal en pantalla). Para evaluar entregas, ejecútala en local con tu clave.
+
 ---
 
 ## Qué resuelve
