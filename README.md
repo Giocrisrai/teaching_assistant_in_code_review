@@ -4,6 +4,7 @@
 
 Aplicación web que **evalúa entregas de código de estudiantes con IA**: ingesta el trabajo desde un repositorio de GitHub o un archivo comprimido, lo analiza contra una **rúbrica**, y entrega puntaje por criterio, retroalimentación accionable y **nota final en escala chilena (1.0–7.0)**. Reduce la carga de corrección del docente y estandariza la retroalimentación.
 
+[![CI](https://github.com/Giocrisrai/teaching_assistant_in_code_review/actions/workflows/ci.yml/badge.svg)](https://github.com/Giocrisrai/teaching_assistant_in_code_review/actions/workflows/ci.yml)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
@@ -63,6 +64,16 @@ Prototipo independiente que explora la **IA generativa aplicada a la evaluación
 
 👤 **Giocrisrai Godoy Bonillo** — AI Engineer · IA aplicada a educación e investigación
 · [giocrisrai.com](https://giocrisrai.com) · [github.com/Giocrisrai](https://github.com/Giocrisrai) · [linkedin.com/in/giocrisrai](https://www.linkedin.com/in/giocrisrai)
+
+## Pruebas
+
+La lógica que decide la nota tiene pruebas automáticas: el cálculo de la escala chilena (60 %, 50 % y proporcional), la lectura de criterios de la rúbrica y el formateo de notebooks. No llaman a Gemini ni necesitan clave.
+
+```bash
+pnpm install
+pnpm test        # 20 pruebas con Vitest
+pnpm typecheck   # tipos de TypeScript
+```
 
 ## Nota de seguridad
 
