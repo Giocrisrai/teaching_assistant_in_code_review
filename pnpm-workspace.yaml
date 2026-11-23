@@ -1,0 +1,7 @@
+# Scripts de instalación de dependencias: solo esbuild (lo usa Vite) puede ejecutarse.
+allowBuilds:
+  esbuild: true
+  "@google/genai": false
+  canvas: false
+  core-js: false
+  protobufjs: false
