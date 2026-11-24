@@ -77,10 +77,12 @@ La lógica que decide la nota tiene pruebas automáticas: el cálculo de la esca
 
 ```bash
 pnpm install
-pnpm test        # 20 pruebas con Vitest
+pnpm test        # 28 pruebas con Vitest
 pnpm typecheck   # tipos de TypeScript
 ```
 
 ## Nota de seguridad
+
+**La retroalimentación del modelo se sanea antes de mostrarse.** El texto que devuelve Gemini depende del código del estudiante, así que es contenido no confiable: una entrega puede incluir texto que empuje al modelo a emitir HTML. Todo pasa por DOMPurify antes de llegar a la página, lo que elimina scripts, manejadores de eventos y enlaces `javascript:` (ver `utils/feedbackHtml.ts` y sus pruebas).
 
 La clave de Gemini se inyecta en el bundle del navegador en tiempo de compilación (`vite.config.ts`). Eso sirve para uso local o en una red de confianza. **No publiques esta aplicación en internet con tu clave**: cualquiera podría extraerla. Para un despliegue público, mueve la llamada a Gemini a un backend que guarde la clave.

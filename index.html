@@ -12,20 +12,6 @@
     <meta property="og:image" content="https://giocrisrai.github.io/teaching_assistant_in_code_review/og.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-    <script type="importmap">
-      {
-        "imports": {
-          "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-          "react/": "https://aistudiocdn.com/react@^19.2.0/",
-          "react": "https://aistudiocdn.com/react@^19.2.0",
-          "@google/genai": "https://aistudiocdn.com/@google/genai@^1.22.0",
-          "jszip": "https://aistudiocdn.com/jszip@^3.10.1",
-          "jspdf": "https://aistudiocdn.com/jspdf@^2.5.1",
-          "marked": "https://aistudiocdn.com/marked@^14.0.0",
-          "pdfjs-dist": "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs"
-        }
-      }
-    </script>
     <script type="module" src="/index.tsx" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,6 +33,15 @@
           opacity: 1;
           transform: translateY(0);
         }
+      }
+      /* Tailwind Typography dibuja comillas invertidas alrededor del codigo en linea:
+         se quitan y el codigo se muestra como una etiqueta. */
+      .prose code::before, .prose code::after { content: none; }
+      .prose :not(pre) > code {
+        background: rgba(148, 163, 184, 0.16);
+        border-radius: 4px;
+        padding: 0.1em 0.35em;
+        font-weight: 500;
       }
       .animate-fade-in-up {
         animation: fadeInUp 0.5s ease-out forwards;
